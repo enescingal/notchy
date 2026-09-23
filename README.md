@@ -18,8 +18,14 @@ MacBook çentiğini Dynamic Island benzeri canlı bir alana dönüştüren macOS
     scripts/run.sh      # Debug derle ve çalıştır
     scripts/vendor-mediaremote-adapter.sh   # medya adaptörünü yeniden derle
 
-Ad-hoc imzalı derlemelerde Erişilebilirlik izni her yeniden derlemeden sonra
-Sistem Ayarları › Gizlilik ve Güvenlik › Erişilebilirlik'ten kaldırılıp tekrar verilmelidir.
+Varsayılan derleme ad-hoc imzalıdır: macOS Erişilebilirlik iznini derlemenin parmak izine
+bağlar, bu yüzden izin her yeniden derlemeden (testler dahil) sonra Sistem Ayarları › Gizlilik
+ve Güvenlik › Erişilebilirlik'ten kaldırılıp tekrar verilmelidir. Bunu önlemek için depo köküne
+git'e işlenmeyen bir `.signing-identity` dosyası koyun; `scripts/run.sh` ve `scripts/test.sh`
+derlemeyi o kimlikle imzalar ve izin derlemeler arasında korunur (kimlikleri görmek için
+`security find-identity -v -p codesigning`):
+
+    echo 'Apple Development: Ad Soyad (XXXXXXXXXX)' > .signing-identity
 
 ## Performans (ölçülen)
 Ölçüm tarihi: 23.09.2026 (final inceleme düzeltmesi — önceki tablo kendisiyle çelişiyordu

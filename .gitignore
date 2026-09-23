@@ -4,3 +4,4 @@ DerivedData/
 Notchy.xcodeproj/
 *.xcuserstate
 xcuserdata/
+.signing-identity
