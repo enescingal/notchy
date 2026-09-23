@@ -8,4 +8,5 @@ enum Log {
     static let hud = Logger(subsystem: subsystem, category: "HUD")
     static let battery = Logger(subsystem: subsystem, category: "Battery")
     static let bluetooth = Logger(subsystem: subsystem, category: "Bluetooth")
+    static let controls = Logger(subsystem: subsystem, category: "Controls")
 }

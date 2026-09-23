@@ -25,9 +25,12 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var media: MediaState?
     /// HUD value shown as a small row while expanded.
     @Published private(set) var expandedHUD: HUDState?
+    /// Quick controls the row can use right now; the others are drawn dimmed.
+    @Published var availableControls: Set<QuickControl> = []
 
     var configuration = NotchConfiguration()
     var mediaCommandHandler: ((MediaCommand) -> Void)?
+    var controlHandler: ((QuickControl) -> Void)?
 
     private let scheduler: Scheduler
     private var pending: PeekContent?
@@ -79,6 +82,10 @@ final class NotchViewModel: ObservableObject {
 
     func send(_ command: MediaCommand) {
         mediaCommandHandler?(command)
+    }
+
+    func perform(_ control: QuickControl) {
+        controlHandler?(control)
     }
 
     private func showPeek(_ content: PeekContent) {
