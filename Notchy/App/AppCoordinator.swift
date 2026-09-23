@@ -80,7 +80,7 @@ final class AppCoordinator {
         case .media: return nil
         case .hud: return HUDModule(viewModel: viewModel)
         case .battery: return BatteryModule(viewModel: viewModel)
-        case .bluetooth: return nil
+        case .bluetooth: return BluetoothModule(viewModel: viewModel, scheduler: scheduler)
         }
     }
 
