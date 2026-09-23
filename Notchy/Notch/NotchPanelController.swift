@@ -23,6 +23,14 @@ final class NotchPanelController {
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.rebuild() }
             .store(in: &cancellables)
+        // A peek ending or the island collapsing can change the click-capture region (via
+        // NotchLayout.islandSize) without any mouse movement, so a stale `ignoresMouseEvents`
+        // must also be corrected on state/media changes, not only on `.mouseMoved`.
+        // `updateHover()` is idempotent when hover state is unchanged, so this can't feedback loop.
+        viewModel.$state.combineLatest(viewModel.$media)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _, _ in self?.updateHover() }
+            .store(in: &cancellables)
         if let global = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved, handler: { [weak self] _ in
             self?.updateHover()
         }) {

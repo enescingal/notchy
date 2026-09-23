@@ -47,7 +47,6 @@ struct SettingsView: View {
                         Label("Verildi", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
                     } else {
                         Button("İzin ver") {
-                            Accessibility.requestPrompt()
                             Accessibility.openSystemSettings()
                         }
                     }
