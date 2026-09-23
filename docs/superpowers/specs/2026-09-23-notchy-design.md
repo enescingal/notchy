@@ -20,7 +20,7 @@ Albüm kapağı, takvim, dosya rafı, kilit ekranı widget'ları, bildirim yans�
 
 ## 2. Mimari
 
-**Teknoloji:** Swift 6, SwiftUI (arayüz) + AppKit (pencere, sistem entegrasyonu). Proje **XcodeGen** (`project.yml`) ile üretilir. Uygulama `LSUIElement = YES` (Dock simgesi yok); menü çubuğu simgesi + ayarlar penceresi vardır.
+**Teknoloji:** Swift 6.4 derleyicisi (Swift 5 dil modu — IOKit/CoreAudio/CGEventTap C geri çağrılarını sade tutmak için; tüm uygulama tipleri `@MainActor`), SwiftUI (arayüz) + AppKit (pencere, sistem entegrasyonu). Proje **XcodeGen** (`project.yml`) ile üretilir. Uygulama `LSUIElement = YES` (Dock simgesi yok); menü çubuğu simgesi + ayarlar penceresi vardır.
 
 ### Dizin yapısı
 
@@ -101,7 +101,7 @@ Tüm geçişler SwiftUI `spring` animasyonuyla. `NotchShape`, alt köşeleri yuv
 
 - `IOBluetoothDevice.register(forConnectNotifications:selector:)` ve cihaz başına `register(forDisconnectNotification:)`.
 - Yalnızca ses cihazları (Class of Device: audio/headphones) için peek; fare/klavye yok sayılır.
-- Peek içeriği: cihaz adı, ikon (AirPods / AirPods Pro / AirPods Max / genel kulaklık — ad ve ürün ID'sinden), pil.
+- Peek içeriği: cihaz adı, ikon (AirPods / AirPods Pro / AirPods Max / genel kulaklık — cihaz adı ve Bluetooth cihaz sınıfından), pil.
 - Pil: `IOBluetoothDevice` üzerindeki gizli `batteryPercentLeft`, `batteryPercentRight`, `batteryPercentCase`, `batteryPercentSingle` özellikleri `responds(to:)` kontrolüyle okunur. Okunamazsa yalnızca "Bağlandı".
 - Ayrılma olayında kısa "Bağlantı kesildi" peek'i.
 
