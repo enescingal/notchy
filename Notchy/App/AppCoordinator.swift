@@ -39,6 +39,7 @@ final class AppCoordinator {
         quickControls = QuickControls(viewModel: viewModel, volume: VolumeController(),
                                       brightness: BrightnessController(), locker: ScreenLocker())
         quickControls?.start()
+        viewModel.onCountdownFinished = { NSSound(named: "Glass")?.play() }
 
         settings.objectWillChange
             .receive(on: RunLoop.main)

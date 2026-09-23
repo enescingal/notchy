@@ -14,6 +14,9 @@ final class NotchPanel: NSPanel {
         hidesOnDeactivate = false
     }
 
-    override var canBecomeKey: Bool { false }
+    /// Only while the countdown's minutes field is open does the panel take the keyboard.
+    var acceptsKeyboard = false
+
+    override var canBecomeKey: Bool { acceptsKeyboard }
     override var canBecomeMain: Bool { false }
 }

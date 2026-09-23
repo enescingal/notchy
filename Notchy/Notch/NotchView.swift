@@ -34,7 +34,7 @@ struct NotchView: View {
     private var content: some View {
         switch viewModel.state {
         case .closed:
-            ClosedContentView(isMediaPlaying: islandContent.isMediaPlaying)
+            ClosedContentView(isMediaPlaying: islandContent.isMediaPlaying, countdown: viewModel.countdown)
         case .peek(let peek):
             PeekContentView(content: peek, notchWidth: notchSize.width)
         case .expanded:
@@ -45,9 +45,19 @@ struct NotchView: View {
 
 struct ClosedContentView: View {
     let isMediaPlaying: Bool
+    let countdown: CountdownState?
 
     var body: some View {
         HStack {
+            if let countdown {
+                HStack(spacing: 4) {
+                    Image(systemName: "timer")
+                    CountdownText(countdown: countdown)
+                }
+                .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                .foregroundStyle(.orange)
+                .padding(.leading, NotchLayout.earRadius + 6)
+            }
             Spacer()
             if isMediaPlaying {
                 EqualizerView().padding(.trailing, NotchLayout.earRadius + 10)
@@ -66,7 +76,7 @@ struct PeekContentView: View {
         case .hud(let hud): HUDPeekView(hud: hud, notchWidth: notchWidth)
         case .battery(let event): BatteryPeekView(event: event, notchWidth: notchWidth)
         case .bluetooth(let event): BluetoothPeekView(event: event, notchWidth: notchWidth)
-        case .timerDone: EmptyView()
+        case .timerDone: TimerDonePeekView(notchWidth: notchWidth)
         }
     }
 }
@@ -87,7 +97,13 @@ struct ExpandedContentView: View {
             }
             .frame(height: notchSize.height)
             VStack(spacing: 8) {
-                QuickControlsView(available: viewModel.availableControls) { viewModel.perform($0) }
+                QuickControlsView(available: viewModel.availableControls,
+                                  isTimerActive: viewModel.countdown != nil,
+                                  onControl: { viewModel.perform($0) },
+                                  onTimer: { viewModel.toggleCountdownEntry() })
+                if viewModel.countdown != nil || viewModel.isEditingCountdown {
+                    CountdownRowView(viewModel: viewModel)
+                }
                 if let media = viewModel.media {
                     MediaExpandedView(media: media) { viewModel.send($0) }
                 }

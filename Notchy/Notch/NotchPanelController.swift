@@ -28,13 +28,24 @@ final class NotchPanelController {
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.rebuild() }
             .store(in: &cancellables)
-        // A peek ending or the island collapsing can change the click-capture region (via
-        // NotchLayout.islandSize) without any mouse movement, so a stale `ignoresMouseEvents`
-        // must also be corrected on state/media changes, not only on `.mouseMoved`.
+        // A peek ending, the island collapsing or the countdown appearing can change the
+        // click-capture region (via NotchLayout.islandSize) without any mouse movement, so a
+        // stale `ignoresMouseEvents` must also be corrected on every view-model change.
         // `updateHover()` is idempotent when hover state is unchanged, so this can't feedback loop.
-        viewModel.$state.combineLatest(viewModel.$media)
+        viewModel.objectWillChange
             .receive(on: RunLoop.main)
-            .sink { [weak self] _, _ in self?.updateHover() }
+            .sink { [weak self] _ in self?.updateHover() }
+            .store(in: &cancellables)
+        // The minutes field needs the keyboard; hand it back as soon as the field closes.
+        viewModel.$isEditingCountdown
+            .removeDuplicates()
+            .sink { [weak self] editing in self?.setAcceptsKeyboard(editing) }
+            .store(in: &cancellables)
+        NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)
+            .sink { [weak self] note in
+                guard let self, let panel = self.panel, note.object as? NSWindow === panel else { return }
+                self.viewModel.cancelCountdownEntry()
+            }
             .store(in: &cancellables)
         if let global = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved, handler: { [weak self] _ in
             self?.updateHover()
@@ -89,6 +100,18 @@ final class NotchPanelController {
         panel.ignoresMouseEvents = true
         panel.orderFrontRegardless()
         self.panel = panel
+    }
+
+    private func setAcceptsKeyboard(_ accepts: Bool) {
+        guard let panel else { return }
+        panel.acceptsKeyboard = accepts
+        if accepts {
+            panel.makeKey()
+        } else if panel.isKeyWindow {
+            // Ordering out a key window makes macOS give the keyboard back to the active app.
+            panel.orderOut(nil)
+            panel.orderFrontRegardless()
+        }
     }
 
     private func setHasScreen(_ value: Bool) {

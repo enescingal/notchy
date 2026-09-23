@@ -71,7 +71,7 @@ Her modül bir **monitör** içerir; sistemi dinler ve olay üretir. Olay oluşt
 
 ### Öncelik ve kurallar
 
-- Öncelik: **HUD > Bluetooth > Pil > Medya**.
+- Öncelik: **HUD > Zamanlayıcı > Bluetooth > Pil > Medya** (zamanlayıcı: bkz. [2026-09-23-countdown-timer-design.md](2026-09-23-countdown-timer-design.md)).
 - Yeni peek, mevcut peek'in yerine geçer (eşit veya yüksek öncelikteyse); düşük öncelikli peek, mevcut peek bitince gösterilir, en fazla 1 bekleyen tutulur.
 - `expanded` durumu peek'ler tarafından bölünmez; bu sırada gelen peek'ler atılır (HUD hariç — HUD değeri expanded görünümde çentiğin yanındaki üst şeritte, peek görünümüyle güncellenir; bkz. [2026-09-23-media-row-design.md](2026-09-23-media-row-design.md)).
 - Aynı türden art arda HUD olayları (ses tuşuna basılı tutma) yeni peek açmaz, mevcut peek'in değerini günceller ve süresini sıfırlar.

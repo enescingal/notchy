@@ -8,6 +8,7 @@ MacBook çentiğini Dynamic Island benzeri canlı bir alana dönüştüren macOS
 - AirPods / Bluetooth kulaklık bağlanma bildirimi ve pil seviyeleri
 - Çalan medya: şarkı bilgisi, oynat/duraklat/ileri/geri, iki parmakla kaydırma
 - Hızlı kontroller: açık adada her zaman parlaklık ve ses düğmeleri, ekranı kilitleme
+- Zamanlayıcı: açık adadan dakika girip geri sayım; kalan süre kapalı adada, bitince ses ve bildirim
 - Harici ekranlar: ada farenin olduğu ekrana geçer; çentiksiz ekranda boştayken gizlenir
 
 ## Gereksinimler
