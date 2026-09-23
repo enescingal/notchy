@@ -8,7 +8,7 @@ struct QuickControlsView: View {
     let onTimer: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 28) {
             HStack(spacing: 2) {
                 button("sun.min.fill", .brightnessDown)
                 button("sun.max.fill", .brightnessUp)

@@ -2,6 +2,8 @@
 
 Tarih: 23.09.2026 · Dal: `feature/notchy-v1` · Ana tasarım: [2026-09-23-notchy-design.md](2026-09-23-notchy-design.md)
 
+> **Revizyon (23.09.2026):** Sanatçı kaldırıldı. Şarkı adı sola yaslı, düğmeler sağda. Açık ada 392 pt genişliğe indi (`expandedSideWidth` 90, `expandedMinWidth` 380).
+
 ## 1. Amaç
 
 Genişlemiş adadaki medya görünümü üç satırdan (şarkı adı, sanatçı, düğmeler) tek satıra iner. Ada da bu satıra göre kısalır.

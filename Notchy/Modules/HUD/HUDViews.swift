@@ -3,9 +3,10 @@ import SwiftUI
 struct HUDPeekView: View {
     let hud: HUDState
     let notchWidth: CGFloat
+    var sideWidth: CGFloat = NotchLayout.peekSideWidth
 
     var body: some View {
-        PeekLayout(notchWidth: notchWidth) {
+        PeekLayout(notchWidth: notchWidth, sideWidth: sideWidth) {
             Image(systemName: Self.symbolName(for: hud))
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)

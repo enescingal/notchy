@@ -20,32 +20,23 @@ struct EqualizerView: View {
     }
 }
 
-/// One row under the notch: artist on the left, title centered, controls on the right.
+/// One row under the controls: the title on the left, playback controls on the right.
 struct MediaExpandedView: View {
     let media: MediaState
     let onCommand: (MediaCommand) -> Void
 
-    /// Artist and controls get equal widths so the title stays centered under the notch.
-    private let sideWidth: CGFloat = 100
-
     var body: some View {
         HStack(spacing: 10) {
-            Text(media.artist ?? "")
-                .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.5))
-                .lineLimit(1)
-                .frame(width: sideWidth, alignment: .leading)
             Text(media.title)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: 2) {
                 button("backward.fill", .previous)
                 button(media.isPlaying ? "pause.fill" : "play.fill", .togglePlayPause, size: 15)
                 button("forward.fill", .next)
             }
-            .frame(width: sideWidth, alignment: .trailing)
         }
     }
 

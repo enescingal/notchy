@@ -30,14 +30,18 @@ final class NotchGeometryTests: XCTestCase {
         XCTAssertEqual(size(.closed, IslandContent(isMediaPlaying: true, hasMedia: true)), CGSize(width: 276, height: 32))
         XCTAssertEqual(size(.closed, IslandContent(hasCountdown: true)), CGSize(width: 364, height: 32))
         XCTAssertEqual(size(.peek(Fixtures.pluggedIn), IslandContent()), CGSize(width: 432, height: 32))
-        XCTAssertEqual(size(.expanded, IslandContent()), CGSize(width: 472, height: 80))
-        XCTAssertEqual(size(.expanded, IslandContent(hasMedia: true)), CGSize(width: 472, height: 116))
-        XCTAssertEqual(size(.expanded, IslandContent(isEditingCountdown: true)), CGSize(width: 472, height: 116))
-        XCTAssertEqual(size(.expanded, IslandContent(hasMedia: true, hasCountdown: true)), CGSize(width: 472, height: 152))
+        XCTAssertEqual(size(.expanded, IslandContent()), CGSize(width: 392, height: 80))
+        XCTAssertEqual(size(.expanded, IslandContent(hasMedia: true)), CGSize(width: 392, height: 116))
+        XCTAssertEqual(size(.expanded, IslandContent(isEditingCountdown: true)), CGSize(width: 392, height: 116))
+        XCTAssertEqual(size(.expanded, IslandContent(hasMedia: true, hasCountdown: true)), CGSize(width: 392, height: 152))
     }
 
     func testPanelSizeFitsExpandedIslandWithMargin() {
-        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 520, height: 176))
+        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 440, height: 176))
+    }
+
+    func testExpandedSideSpaceFitsTheHUDBesideTheNotch() {
+        XCTAssertEqual(NotchLayout.expandedSideSpace(notch: notch), 90)
     }
 
     func testIslandRectIsTopCenteredInPanel() {

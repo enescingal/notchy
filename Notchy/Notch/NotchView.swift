@@ -90,7 +90,8 @@ struct ExpandedContentView: View {
             // The strip beside the notch shows the same HUD as a closed-state peek.
             Group {
                 if let hud = viewModel.expandedHUD {
-                    HUDPeekView(hud: hud, notchWidth: notchSize.width)
+                    HUDPeekView(hud: hud, notchWidth: notchSize.width,
+                                sideWidth: NotchLayout.expandedSideSpace(notch: notchSize))
                 } else {
                     Color.clear
                 }

@@ -18,8 +18,8 @@ enum NotchLayout {
     static let earRadius: CGFloat = 6
     static let peekSideWidth: CGFloat = 110
     static let mediaIndicatorWidth: CGFloat = 32
-    static let expandedSideWidth: CGFloat = 120
-    static let expandedMinWidth: CGFloat = 460
+    static let expandedSideWidth: CGFloat = 90
+    static let expandedMinWidth: CGFloat = 380
     static let expandedExtraHeight: CGFloat = 48
     /// Extra height for each row under the control row (countdown, media).
     static let expandedRowHeight: CGFloat = 36
@@ -36,11 +36,16 @@ enum NotchLayout {
         case .peek:
             body = CGSize(width: notch.width + 2 * peekSideWidth, height: notch.height)
         case .expanded:
-            body = CGSize(width: max(notch.width + 2 * expandedSideWidth, expandedMinWidth),
+            body = CGSize(width: notch.width + 2 * expandedSideSpace(notch: notch),
                           height: notch.height + expandedExtraHeight
                               + CGFloat(content.expandedRows - 1) * expandedRowHeight)
         }
         return CGSize(width: body.width + 2 * earRadius, height: body.height)
+    }
+
+    /// Room on each side of the notch in the expanded island, not counting the ear corners.
+    static func expandedSideSpace(notch: CGSize) -> CGFloat {
+        (max(notch.width + 2 * expandedSideWidth, expandedMinWidth) - notch.width) / 2
     }
 
     static func panelSize(notch: CGSize) -> CGSize {
