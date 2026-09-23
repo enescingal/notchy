@@ -23,15 +23,21 @@ final class NotchGeometryTests: XCTestCase {
     }
 
     func testIslandSizes() {
-        XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: false, hasMedia: false, notch: notch), CGSize(width: 212, height: 32))
-        XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: true, hasMedia: false, notch: notch), CGSize(width: 276, height: 32))
-        XCTAssertEqual(NotchLayout.islandSize(for: .peek(Fixtures.pluggedIn), isMediaPlaying: false, hasMedia: false, notch: notch), CGSize(width: 432, height: 32))
-        XCTAssertEqual(NotchLayout.islandSize(for: .expanded, isMediaPlaying: false, hasMedia: false, notch: notch), CGSize(width: 472, height: 80))
-        XCTAssertEqual(NotchLayout.islandSize(for: .expanded, isMediaPlaying: false, hasMedia: true, notch: notch), CGSize(width: 472, height: 116))
+        func size(_ state: NotchState, _ content: IslandContent) -> CGSize {
+            NotchLayout.islandSize(for: state, content: content, notch: notch)
+        }
+        XCTAssertEqual(size(.closed, IslandContent()), CGSize(width: 212, height: 32))
+        XCTAssertEqual(size(.closed, IslandContent(isMediaPlaying: true, hasMedia: true)), CGSize(width: 276, height: 32))
+        XCTAssertEqual(size(.closed, IslandContent(hasCountdown: true)), CGSize(width: 364, height: 32))
+        XCTAssertEqual(size(.peek(Fixtures.pluggedIn), IslandContent()), CGSize(width: 432, height: 32))
+        XCTAssertEqual(size(.expanded, IslandContent()), CGSize(width: 472, height: 80))
+        XCTAssertEqual(size(.expanded, IslandContent(hasMedia: true)), CGSize(width: 472, height: 116))
+        XCTAssertEqual(size(.expanded, IslandContent(isEditingCountdown: true)), CGSize(width: 472, height: 116))
+        XCTAssertEqual(size(.expanded, IslandContent(hasMedia: true, hasCountdown: true)), CGSize(width: 472, height: 152))
     }
 
     func testPanelSizeFitsExpandedIslandWithMargin() {
-        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 520, height: 140))
+        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 520, height: 176))
     }
 
     func testIslandRectIsTopCenteredInPanel() {
@@ -68,10 +74,14 @@ final class NotchGeometryTests: XCTestCase {
     }
 
     func testIdleIslandIsHiddenOnlyOnAVirtualNotch() {
-        XCTAssertTrue(NotchLayout.isHidden(state: .closed, isMediaPlaying: false, isVirtualNotch: true))
-        XCTAssertFalse(NotchLayout.isHidden(state: .closed, isMediaPlaying: true, isVirtualNotch: true))
-        XCTAssertFalse(NotchLayout.isHidden(state: .expanded, isMediaPlaying: false, isVirtualNotch: true))
-        XCTAssertFalse(NotchLayout.isHidden(state: .peek(Fixtures.pluggedIn), isMediaPlaying: false, isVirtualNotch: true))
-        XCTAssertFalse(NotchLayout.isHidden(state: .closed, isMediaPlaying: false, isVirtualNotch: false))
+        func hidden(_ state: NotchState, _ content: IslandContent, virtual: Bool = true) -> Bool {
+            NotchLayout.isHidden(state: state, content: content, isVirtualNotch: virtual)
+        }
+        XCTAssertTrue(hidden(.closed, IslandContent()))
+        XCTAssertFalse(hidden(.closed, IslandContent(isMediaPlaying: true, hasMedia: true)))
+        XCTAssertFalse(hidden(.closed, IslandContent(hasCountdown: true)))
+        XCTAssertFalse(hidden(.expanded, IslandContent()))
+        XCTAssertFalse(hidden(.peek(Fixtures.pluggedIn), IslandContent()))
+        XCTAssertFalse(hidden(.closed, IslandContent(), virtual: false))
     }
 }

@@ -6,15 +6,14 @@ struct NotchView: View {
     /// True on screens without a physical notch, where the idle island is hidden.
     let isVirtualNotch: Bool
 
-    private var isMediaPlaying: Bool { viewModel.media?.isPlaying == true }
-    private var hasMedia: Bool { viewModel.media != nil }
+    private var islandContent: IslandContent { viewModel.islandContent }
 
     private var islandSize: CGSize {
-        NotchLayout.islandSize(for: viewModel.state, isMediaPlaying: isMediaPlaying, hasMedia: hasMedia, notch: notchSize)
+        NotchLayout.islandSize(for: viewModel.state, content: islandContent, notch: notchSize)
     }
 
     private var isHidden: Bool {
-        NotchLayout.isHidden(state: viewModel.state, isMediaPlaying: isMediaPlaying, isVirtualNotch: isVirtualNotch)
+        NotchLayout.isHidden(state: viewModel.state, content: islandContent, isVirtualNotch: isVirtualNotch)
     }
 
     private var bottomRadius: CGFloat { viewModel.state == .expanded ? 22 : 10 }
@@ -27,8 +26,7 @@ struct NotchView: View {
             .opacity(isHidden ? 0 : 1)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .animation(.spring(response: 0.38, dampingFraction: 0.78), value: viewModel.state)
-            .animation(.spring(response: 0.38, dampingFraction: 0.78), value: isMediaPlaying)
-            .animation(.spring(response: 0.38, dampingFraction: 0.78), value: hasMedia)
+            .animation(.spring(response: 0.38, dampingFraction: 0.78), value: islandContent)
             .environment(\.colorScheme, .dark)
     }
 
@@ -36,7 +34,7 @@ struct NotchView: View {
     private var content: some View {
         switch viewModel.state {
         case .closed:
-            ClosedContentView(isMediaPlaying: isMediaPlaying)
+            ClosedContentView(isMediaPlaying: islandContent.isMediaPlaying)
         case .peek(let peek):
             PeekContentView(content: peek, notchWidth: notchSize.width)
         case .expanded:

@@ -108,10 +108,7 @@ final class NotchPanelController {
     private func updateHover() {
         followMouse()
         guard let panel else { return }
-        let island = NotchLayout.islandSize(for: viewModel.state,
-                                            isMediaPlaying: viewModel.media?.isPlaying == true,
-                                            hasMedia: viewModel.media != nil,
-                                            notch: notchSize)
+        let island = NotchLayout.islandSize(for: viewModel.state, content: viewModel.islandContent, notch: notchSize)
         let local = NotchLayout.islandRect(islandSize: island, panelSize: panel.frame.size)
         // Grow by 2 pt vertically so the very top pixel row (y == maxY) counts as inside.
         let onScreen = local.offsetBy(dx: panel.frame.minX, dy: panel.frame.minY).insetBy(dx: 0, dy: -2)
