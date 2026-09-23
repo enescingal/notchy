@@ -29,12 +29,10 @@ final class AppCoordinator {
 
     func start() {
         menuBar = MenuBarController(onSettings: { [weak self] in self?.showSettings() })
-        // rebuild() (called synchronously by panelController.start() below) always invokes this,
-        // so it also performs the very first applySettings() — nothing else needs to call it.
-        panelController.onNotchAvailabilityChange = { [weak self] hasNotch in
-            guard let self else { return }
-            self.menuBar?.setHasNotch(hasNotch)
-            self.lifecycle.setHasNotch(hasNotch)
+        // rebuild() (called synchronously by panelController.start() below) always reports the
+        // first availability, so it also performs the very first applySettings().
+        panelController.onScreenAvailabilityChange = { [weak self] hasScreen in
+            self?.lifecycle.setHasScreen(hasScreen)
         }
         panelController.start()
 
@@ -90,9 +88,9 @@ final class AppCoordinator {
     }
 }
 
-/// Decides which modules run, driven by user settings, notch availability, and Accessibility
+/// Decides which modules run, driven by user settings, screen availability, and Accessibility
 /// trust. Extracted from `AppCoordinator` so the policy (start/stop bookkeeping, accessibility
-/// restart) can be unit tested without touching AppKit (menu bar, windows, real notch
+/// restart) can be unit tested without touching AppKit (menu bar, windows, real screen
 /// detection) — it only needs a settings store and two injectable seams: the module factory
 /// and an `isTrusted` provider.
 @MainActor
@@ -119,16 +117,16 @@ final class ModuleLifecycle {
         self.makeModule = makeModule
     }
 
-    /// Nothing can be shown without the island, so no module may run without a notch.
-    func setHasNotch(_ hasNotch: Bool) {
-        status.hasNotch = hasNotch
+    /// Nothing can be shown without the island, so no module may run without a screen for it.
+    func setHasScreen(_ hasScreen: Bool) {
+        status.hasScreen = hasScreen
         applySettings()
     }
 
     func applySettings() {
         viewModel.configuration = settings.notchConfiguration
         for id in ModuleID.allCases {
-            let shouldRun = settings.isEnabled(id) && status.hasNotch
+            let shouldRun = settings.isEnabled(id) && status.hasScreen
             if shouldRun, modules[id] == nil, let module = makeModule(id) {
                 modules[id] = module
                 module.start()

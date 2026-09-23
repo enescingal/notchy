@@ -3,7 +3,6 @@ import AppKit
 @MainActor
 final class MenuBarController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    private let noNotchItem = NSMenuItem(title: "Çentikli ekran bulunamadı", action: nil, keyEquivalent: "")
     private let onSettings: () -> Void
 
     init(onSettings: @escaping () -> Void) {
@@ -14,18 +13,11 @@ final class MenuBarController: NSObject {
         icon?.accessibilityDescription = "Notchy"
         statusItem.button?.image = icon
         let menu = NSMenu()
-        noNotchItem.isEnabled = false
-        noNotchItem.isHidden = true
-        menu.addItem(noNotchItem)
         menu.addItem(makeItem("Ayarlar…", #selector(openSettings), key: ","))
         menu.addItem(makeItem("Notchy Hakkında", #selector(openAbout), key: ""))
         menu.addItem(.separator())
         menu.addItem(makeItem("Çıkış", #selector(quit), key: "q"))
         statusItem.menu = menu
-    }
-
-    func setHasNotch(_ hasNotch: Bool) {
-        noNotchItem.isHidden = hasNotch
     }
 
     private func makeItem(_ title: String, _ action: Selector, key: String) -> NSMenuItem {

@@ -5,5 +5,5 @@ import Combine
 final class ModuleStatus: ObservableObject {
     @Published var mediaUnavailable = false
     @Published var accessibilityGranted = Accessibility.isTrusted
-    @Published var hasNotch = true
+    @Published var hasScreen = true
 }

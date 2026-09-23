@@ -7,10 +7,6 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            if !status.hasNotch {
-                Text("Çentikli ekran bulunamadı. Notchy yalnızca yerleşik çentikli ekranda çalışır.")
-                    .foregroundStyle(.orange)
-            }
             Section("Modüller") {
                 Toggle("Medya", isOn: $settings.mediaEnabled)
                 if status.mediaUnavailable {

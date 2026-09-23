@@ -6,7 +6,7 @@ import SwiftUI
 /// mouse events (click-through) everywhere except over the island itself.
 @MainActor
 final class NotchPanelController {
-    var onNotchAvailabilityChange: ((Bool) -> Void)?
+    var onScreenAvailabilityChange: ((Bool) -> Void)?
 
     private let viewModel: NotchViewModel
     private var panel: NotchPanel?
@@ -58,7 +58,7 @@ final class NotchPanelController {
             Log.notch.info("Çentikli ekran bulunamadı")
             panel?.orderOut(nil)
             panel = nil
-            onNotchAvailabilityChange?(false)
+            onScreenAvailabilityChange?(false)
             return
         }
         notchSize = size
@@ -72,7 +72,7 @@ final class NotchPanelController {
         panel.ignoresMouseEvents = true
         panel.orderFrontRegardless()
         self.panel = panel
-        onNotchAvailabilityChange?(true)
+        onScreenAvailabilityChange?(true)
     }
 
     private func updateHover() {

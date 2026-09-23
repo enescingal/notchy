@@ -40,36 +40,36 @@ final class ModuleLifecycleTests: XCTestCase {
             isTrusted: isTrusted, makeModule: spy.makeModule)
     }
 
-    // MARK: - Finding 1: nothing may run without a notch.
+    // MARK: - Finding 1: nothing may run without a screen.
 
-    func testNoModuleStartsWithoutANotch() {
+    func testNoModuleStartsWithoutAScreen() {
         let settings = makeSettings()
         let status = ModuleStatus()
         let spy = ModuleFactorySpy()
         let lifecycle = makeLifecycle(settings: settings, status: status, spy: spy)
 
-        lifecycle.setHasNotch(false)
+        lifecycle.setHasScreen(false)
 
         for id in ModuleID.allCases {
-            XCTAssertTrue(spy.instances(id).isEmpty, "\(id) must not run without a notch")
+            XCTAssertTrue(spy.instances(id).isEmpty, "\(id) must not run without a screen")
         }
     }
 
-    func testModulesStartWhenNotchAppearsAndStopWhenItDisappears() {
+    func testModulesStartWhenAScreenAppearsAndStopWhenItDisappears() {
         let settings = makeSettings()
         let status = ModuleStatus()
         let spy = ModuleFactorySpy()
         let lifecycle = makeLifecycle(settings: settings, status: status, spy: spy)
 
-        lifecycle.setHasNotch(false)
+        lifecycle.setHasScreen(false)
         XCTAssertTrue(spy.instances(.hud).isEmpty)
 
-        lifecycle.setHasNotch(true)
+        lifecycle.setHasScreen(true)
         XCTAssertEqual(spy.instances(.hud).count, 1)
         XCTAssertTrue(spy.instances(.hud)[0].started)
 
-        lifecycle.setHasNotch(false)
-        XCTAssertTrue(spy.instances(.hud)[0].stopped, "HUD must stop again once the notch is gone")
+        lifecycle.setHasScreen(false)
+        XCTAssertTrue(spy.instances(.hud)[0].stopped, "HUD must stop again once the screen is gone")
     }
 
     // MARK: - Finding 2: an accessibility grant while running must restart the HUD reliably.
@@ -81,7 +81,7 @@ final class ModuleLifecycleTests: XCTestCase {
         var trusted = false
         let lifecycle = makeLifecycle(settings: settings, status: status, spy: spy, isTrusted: { trusted })
 
-        lifecycle.setHasNotch(true) // HUD starts observe-only, with trusted == false
+        lifecycle.setHasScreen(true) // HUD starts observe-only, with trusted == false
         XCTAssertEqual(spy.instances(.hud).count, 1)
         let firstHUD = spy.instances(.hud)[0]
 
@@ -105,7 +105,7 @@ final class ModuleLifecycleTests: XCTestCase {
         let spy = ModuleFactorySpy()
         let lifecycle = makeLifecycle(settings: settings, status: status, spy: spy, isTrusted: { true })
 
-        lifecycle.setHasNotch(true)
+        lifecycle.setHasScreen(true)
         XCTAssertEqual(spy.instances(.hud).count, 1)
 
         lifecycle.refreshAccessibility()
