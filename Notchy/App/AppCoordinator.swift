@@ -77,7 +77,10 @@ final class AppCoordinator {
 
     private func makeModule(_ id: ModuleID) -> NotchModule? {
         switch id {
-        case .media: return nil
+        case .media:
+            return MediaModule(viewModel: viewModel, status: status, makeSource: { [scheduler] in
+                MediaRemoteAdapterSource(scheduler: scheduler)
+            })
         case .hud: return HUDModule(viewModel: viewModel)
         case .battery: return BatteryModule(viewModel: viewModel)
         case .bluetooth: return BluetoothModule(viewModel: viewModel, scheduler: scheduler)

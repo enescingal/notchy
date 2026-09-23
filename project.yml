@@ -20,6 +20,9 @@ targets:
     platform: macOS
     sources:
       - path: Notchy
+      - path: Vendor/MediaRemoteAdapter
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.notchy.app
