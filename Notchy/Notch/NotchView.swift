@@ -99,6 +99,7 @@ struct ExpandedContentView: View {
             .frame(height: notchSize.height)
             VStack(spacing: 8) {
                 QuickControlsView(available: viewModel.availableControls,
+                                  levels: viewModel.controlLevels,
                                   isTimerActive: viewModel.countdown != nil,
                                   onControl: { viewModel.perform($0) },
                                   onTimer: { viewModel.toggleCountdownEntry() })

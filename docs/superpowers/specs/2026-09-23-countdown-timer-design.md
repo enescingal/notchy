@@ -2,6 +2,8 @@
 
 Tarih: 23.09.2026 · Dal: `feature/notchy-v1` · İlgili: [2026-09-23-quick-controls-design.md](2026-09-23-quick-controls-design.md)
 
+> **Revizyon (23.09.2026):** Zamanlayıcı düğmesi kontrol satırının sağ grubunda, kilidin solunda duruyor.
+
 ## 1. Amaç
 
 Açık adadan dakika girilerek bir geri sayım başlatılır. Kalan süre adada küçük olarak görünür. Süre dolunca ses çalar ve bildirim çıkar.

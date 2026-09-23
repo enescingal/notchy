@@ -4,6 +4,8 @@ Tarih: 23.09.2026 · Dal: `feature/notchy-v1` · Ana tasarım: [2026-09-23-notch
 
 > **Revizyon (23.09.2026):** Gruplar arası boşluk 28 pt'ye çıktı. Açık ada 392 pt genişliğinde; çentik yanındaki gösterge bu alana göre daraltılıyor (`NotchLayout.expandedSideSpace`).
 
+> **Revizyon 2 (23.09.2026):** Parlaklık ve ses düğmelerinin arasında 11 pt, yarı saydam yüzde değeri var (`ControlLevels`). Ses değeri sistem bildirimleriyle güncellenir. Parlaklık için sistem bildirimi olmadığından değer ada açılınca, düğmeyle ve ada açıkken tuşla güncellenir. Satır ikiye ayrıldı: solda parlaklık ve ses, sağda zamanlayıcı ve kilit.
+
 ## 1. Amaç
 
 Açık adada, müzik çalsın ya da çalmasın, her zaman bir kontrol satırı görünür. Satırda şu düğmeler vardır: parlaklığı azalt/artır, sesi azalt/artır ve ekranı hemen kilitle.

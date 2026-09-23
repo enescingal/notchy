@@ -6,10 +6,17 @@ enum QuickControl: CaseIterable {
     case brightnessDown, brightnessUp, volumeDown, volumeUp, lockScreen
 }
 
+/// Current levels shown between the buttons; nil while a control is unavailable.
+struct ControlLevels: Equatable {
+    var brightness: Double?
+    var volume: Double?
+}
+
 @MainActor
 protocol VolumeStepping: AnyObject {
     var canSetVolume: Bool { get }
     var current: HUDState { get }
+    var onChange: ((HUDState) -> Void)? { get set }
     func start()
     func step(up: Bool, fine: Bool)
 }
@@ -17,6 +24,7 @@ protocol VolumeStepping: AnyObject {
 @MainActor
 protocol BrightnessStepping: AnyObject {
     var isUsable: Bool { get }
+    var current: HUDState? { get }
     func step(up: Bool, fine: Bool) -> HUDState?
 }
 
@@ -35,7 +43,7 @@ final class QuickControls {
     private let volume: VolumeStepping
     private let brightness: BrightnessStepping?
     private let locker: ScreenLocking?
-    private var cancellable: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
 
     init(viewModel: NotchViewModel, volume: VolumeStepping, brightness: BrightnessStepping?, locker: ScreenLocking?) {
         self.viewModel = viewModel
@@ -45,14 +53,23 @@ final class QuickControls {
     }
 
     func start() {
+        volume.onChange = { [weak self] state in self?.viewModel?.controlLevels.volume = Self.shownLevel(state) }
         volume.start()
         viewModel?.controlHandler = { [weak self] control in self?.perform(control) }
         // The lid or the output device can change while the island is closed, so check again
         // every time it opens.
-        cancellable = viewModel?.$state
+        viewModel?.$state
             .filter { $0 == .expanded }
-            .sink { [weak self] _ in self?.refreshAvailability() }
-        refreshAvailability()
+            .sink { [weak self] _ in self?.refresh() }
+            .store(in: &cancellables)
+        // Brightness has no change notification; brightness keys pressed while the island is
+        // open arrive here as the expanded HUD.
+        viewModel?.$expandedHUD
+            .compactMap { $0 }
+            .filter { $0.kind == .brightness }
+            .sink { [weak self] hud in self?.viewModel?.controlLevels.brightness = hud.level }
+            .store(in: &cancellables)
+        refresh()
     }
 
     private func perform(_ control: QuickControl) {
@@ -70,14 +87,28 @@ final class QuickControls {
         case .lockScreen:
             locker?.lock()
         }
-        refreshAvailability()
+        refresh()
     }
 
-    private func refreshAvailability() {
+    /// Re-reads which controls work right now and their current levels.
+    private func refresh() {
         var available = Set<QuickControl>()
-        if let brightness, brightness.isUsable { available.formUnion([.brightnessDown, .brightnessUp]) }
-        if volume.canSetVolume { available.formUnion([.volumeDown, .volumeUp]) }
+        var levels = ControlLevels()
+        if let brightness, brightness.isUsable {
+            available.formUnion([.brightnessDown, .brightnessUp])
+            levels.brightness = brightness.current?.level
+        }
+        if volume.canSetVolume {
+            available.formUnion([.volumeDown, .volumeUp])
+            levels.volume = Self.shownLevel(volume.current)
+        }
         if locker != nil { available.insert(.lockScreen) }
         viewModel?.availableControls = available
+        viewModel?.controlLevels = levels
+    }
+
+    /// A muted output shows as zero.
+    private static func shownLevel(_ state: HUDState) -> Double {
+        state.isMuted ? 0 : state.level
     }
 }

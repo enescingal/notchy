@@ -28,6 +28,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var expandedHUD: HUDState?
     /// Quick controls the row can use right now; the others are drawn dimmed.
     @Published var availableControls: Set<QuickControl> = []
+    /// Brightness and volume levels shown between the control buttons.
+    @Published var controlLevels = ControlLevels()
     /// The running or paused countdown, if any.
     @Published private(set) var countdown: CountdownState?
     /// True while the minutes field is open; keeps the island expanded and takes the keyboard.
