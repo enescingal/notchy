@@ -28,22 +28,6 @@ struct HUDPeekView: View {
     }
 }
 
-/// Compact HUD row shown at the bottom of the expanded island.
-struct HUDInlineView: View {
-    let hud: HUDState
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: HUDPeekView.symbolName(for: hud))
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 16)
-            LevelBar(level: hud.isMuted ? 0 : hud.level)
-                .frame(width: 140, height: 4)
-        }
-    }
-}
-
 struct LevelBar: View {
     let level: Double
 

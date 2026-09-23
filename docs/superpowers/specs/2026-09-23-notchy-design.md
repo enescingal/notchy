@@ -73,7 +73,7 @@ Her modül bir **monitör** içerir; sistemi dinler ve olay üretir. Olay oluşt
 
 - Öncelik: **HUD > Bluetooth > Pil > Medya**.
 - Yeni peek, mevcut peek'in yerine geçer (eşit veya yüksek öncelikteyse); düşük öncelikli peek, mevcut peek bitince gösterilir, en fazla 1 bekleyen tutulur.
-- `expanded` durumu peek'ler tarafından bölünmez; bu sırada gelen peek'ler atılır (HUD hariç — HUD değeri expanded görünümde küçük bir satır olarak güncellenir).
+- `expanded` durumu peek'ler tarafından bölünmez; bu sırada gelen peek'ler atılır (HUD hariç — HUD değeri expanded görünümde çentiğin yanındaki üst şeritte, peek görünümüyle güncellenir; bkz. [2026-09-23-media-row-design.md](2026-09-23-media-row-design.md)).
 - Aynı türden art arda HUD olayları (ses tuşuna basılı tutma) yeni peek açmaz, mevcut peek'in değerini günceller ve süresini sıfırlar.
 
 ### Animasyon
@@ -111,7 +111,7 @@ Tüm geçişler SwiftUI `spring` animasyonuyla. `NotchShape`, alt köşeleri yuv
 - `MediaRemoteAdapterSource`: `/usr/bin/perl <script> <framework> stream` sürecini `Process` ile başlatır, stdout'tan satır satır JSON okur → `MediaState { title, artist, isPlaying, bundleID }`.
 - Komutlar (play/pause, next, previous) adaptörün `send` komutuyla gönderilir.
 - **closed:** Çalarken ekolayzır göstergesi.
-- **expanded:** Şarkı adı, sanatçı, önceki / oynat-duraklat / sonraki düğmeleri. Trackpad'de iki parmakla yatay kaydırma (`scrollWheel`, eşik aşılınca bir kez tetiklenir) → önceki/sonraki.
+- **expanded:** Tek satır: solda sanatçı, ortada şarkı adı, sağda önceki / oynat-duraklat / sonraki düğmeleri (bkz. [2026-09-23-media-row-design.md](2026-09-23-media-row-design.md)). Trackpad'de iki parmakla yatay kaydırma (`scrollWheel`, eşik aşılınca bir kez tetiklenir) → önceki/sonraki.
 - Albüm kapağı v1'de yoktur.
 - **Hata:** Süreç çökerse 1 / 2 / 4 sn beklemeyle en fazla 3 yeniden başlatma; sonra modül gizlenir, ayarlarda "Medya bilgisi alınamıyor" gösterilir. Ayrıştırılamayan JSON satırı loglanıp atlanır.
 

@@ -7,7 +7,7 @@ enum NotchLayout {
     static let mediaIndicatorWidth: CGFloat = 32
     static let expandedSideWidth: CGFloat = 120
     static let expandedMinWidth: CGFloat = 460
-    static let expandedExtraHeight: CGFloat = 104
+    static let expandedExtraHeight: CGFloat = 48
     static let panelMargin: CGFloat = 24
 
     static func islandSize(for state: NotchState, isMediaPlaying: Bool, notch: CGSize) -> CGSize {

@@ -31,7 +31,7 @@ struct NotchView: View {
         case .peek(let peek):
             PeekContentView(content: peek, notchWidth: notchSize.width)
         case .expanded:
-            ExpandedContentView(viewModel: viewModel, notchHeight: notchSize.height)
+            ExpandedContentView(viewModel: viewModel, notchSize: notchSize)
         }
     }
 }
@@ -65,11 +65,19 @@ struct PeekContentView: View {
 
 struct ExpandedContentView: View {
     @ObservedObject var viewModel: NotchViewModel
-    let notchHeight: CGFloat
+    let notchSize: CGSize
 
     var body: some View {
         VStack(spacing: 0) {
-            Color.clear.frame(height: notchHeight)
+            // The strip beside the notch shows the same HUD as a closed-state peek.
+            Group {
+                if let hud = viewModel.expandedHUD {
+                    HUDPeekView(hud: hud, notchWidth: notchSize.width)
+                } else {
+                    Color.clear
+                }
+            }
+            .frame(height: notchSize.height)
             Group {
                 if let media = viewModel.media {
                     MediaExpandedView(media: media) { viewModel.send($0) }
@@ -79,14 +87,8 @@ struct ExpandedContentView: View {
                         .foregroundStyle(.white.opacity(0.6))
                 }
             }
+            .padding(.horizontal, NotchLayout.earRadius + 20)
             .frame(maxHeight: .infinity)
-        }
-        .padding(.horizontal, NotchLayout.earRadius + 20)
-        .padding(.bottom, 14)
-        .overlay(alignment: .bottom) {
-            if let hud = viewModel.expandedHUD {
-                HUDInlineView(hud: hud).padding(.bottom, 6)
-            }
         }
     }
 }

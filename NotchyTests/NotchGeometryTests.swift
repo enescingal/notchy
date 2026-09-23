@@ -26,11 +26,11 @@ final class NotchGeometryTests: XCTestCase {
         XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: false, notch: notch), CGSize(width: 212, height: 32))
         XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: true, notch: notch), CGSize(width: 276, height: 32))
         XCTAssertEqual(NotchLayout.islandSize(for: .peek(Fixtures.pluggedIn), isMediaPlaying: false, notch: notch), CGSize(width: 432, height: 32))
-        XCTAssertEqual(NotchLayout.islandSize(for: .expanded, isMediaPlaying: false, notch: notch), CGSize(width: 472, height: 136))
+        XCTAssertEqual(NotchLayout.islandSize(for: .expanded, isMediaPlaying: false, notch: notch), CGSize(width: 472, height: 80))
     }
 
     func testPanelSizeFitsExpandedIslandWithMargin() {
-        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 520, height: 160))
+        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 520, height: 104))
     }
 
     func testIslandRectIsTopCenteredInPanel() {

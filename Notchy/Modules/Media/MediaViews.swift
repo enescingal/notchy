@@ -20,38 +20,41 @@ struct EqualizerView: View {
     }
 }
 
+/// One row under the notch: artist on the left, title centered, controls on the right.
 struct MediaExpandedView: View {
     let media: MediaState
     let onCommand: (MediaCommand) -> Void
 
+    /// Artist and controls get equal widths so the title stays centered under the notch.
+    private let sideWidth: CGFloat = 100
+
     var body: some View {
-        VStack(spacing: 10) {
-            VStack(spacing: 2) {
-                Text(media.title)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                if let artist = media.artist, !artist.isEmpty {
-                    Text(artist)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.white.opacity(0.6))
-                        .lineLimit(1)
-                }
-            }
-            HStack(spacing: 28) {
+        HStack(spacing: 10) {
+            Text(media.artist ?? "")
+                .font(.system(size: 11))
+                .foregroundStyle(.white.opacity(0.5))
+                .lineLimit(1)
+                .frame(width: sideWidth, alignment: .leading)
+            Text(media.title)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
+            HStack(spacing: 2) {
                 button("backward.fill", .previous)
-                button(media.isPlaying ? "pause.fill" : "play.fill", .togglePlayPause, size: 20)
+                button(media.isPlaying ? "pause.fill" : "play.fill", .togglePlayPause, size: 15)
                 button("forward.fill", .next)
             }
+            .frame(width: sideWidth, alignment: .trailing)
         }
     }
 
-    private func button(_ symbol: String, _ command: MediaCommand, size: CGFloat = 16) -> some View {
+    private func button(_ symbol: String, _ command: MediaCommand, size: CGFloat = 12) -> some View {
         Button { onCommand(command) } label: {
             Image(systemName: symbol)
                 .font(.system(size: size, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 32, height: 28)
+                .frame(width: 28, height: 28)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
