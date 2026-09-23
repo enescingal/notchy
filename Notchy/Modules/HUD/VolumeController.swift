@@ -39,7 +39,8 @@ final class VolumeController {
             MainActor.assumeIsolated { self?.defaultDeviceChanged() }
         }
         var address = Self.defaultDeviceAddress
-        AudioObjectAddPropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &address, .main, listener)
+        let status = AudioObjectAddPropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &address, .main, listener)
+        if status != noErr { Log.hud.error("Varsayılan cihaz dinleyicisi eklenemedi: \(status)") }
         defaultDeviceListener = listener
         addDeviceListeners()
     }
@@ -48,7 +49,8 @@ final class VolumeController {
         removeDeviceListeners()
         if let defaultDeviceListener {
             var address = Self.defaultDeviceAddress
-            AudioObjectRemovePropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &address, .main, defaultDeviceListener)
+            let status = AudioObjectRemovePropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &address, .main, defaultDeviceListener)
+            if status != noErr { Log.hud.error("Varsayılan cihaz dinleyicisi kaldırılamadı: \(status)") }
         }
         defaultDeviceListener = nil
     }
@@ -77,8 +79,10 @@ final class VolumeController {
         }
         var volume = Self.volumeAddress
         var mute = Self.muteAddress
-        AudioObjectAddPropertyListenerBlock(deviceID, &volume, .main, listener)
-        AudioObjectAddPropertyListenerBlock(deviceID, &mute, .main, listener)
+        let volumeStatus = AudioObjectAddPropertyListenerBlock(deviceID, &volume, .main, listener)
+        if volumeStatus != noErr { Log.hud.error("Ses dinleyicisi eklenemedi: \(volumeStatus)") }
+        let muteStatus = AudioObjectAddPropertyListenerBlock(deviceID, &mute, .main, listener)
+        if muteStatus != noErr { Log.hud.error("Sessiz dinleyicisi eklenemedi: \(muteStatus)") }
         deviceListener = listener
     }
 
@@ -86,8 +90,10 @@ final class VolumeController {
         guard let deviceListener else { return }
         var volume = Self.volumeAddress
         var mute = Self.muteAddress
-        AudioObjectRemovePropertyListenerBlock(deviceID, &volume, .main, deviceListener)
-        AudioObjectRemovePropertyListenerBlock(deviceID, &mute, .main, deviceListener)
+        let volumeStatus = AudioObjectRemovePropertyListenerBlock(deviceID, &volume, .main, deviceListener)
+        if volumeStatus != noErr { Log.hud.error("Ses dinleyicisi kaldırılamadı: \(volumeStatus)") }
+        let muteStatus = AudioObjectRemovePropertyListenerBlock(deviceID, &mute, .main, deviceListener)
+        if muteStatus != noErr { Log.hud.error("Sessiz dinleyicisi kaldırılamadı: \(muteStatus)") }
         self.deviceListener = nil
     }
 
@@ -125,7 +131,12 @@ final class VolumeController {
         var address = defaultDeviceAddress
         var device = AudioObjectID(kAudioObjectUnknown)
         var size = UInt32(MemoryLayout<AudioObjectID>.size)
-        AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &device)
+        let status = AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &device)
+        if status != noErr {
+            Log.hud.error("Varsayılan çıkış cihazı alınamadı: \(status)")
+        } else if device == kAudioObjectUnknown {
+            Log.hud.error("Varsayılan çıkış cihazı bulunamadı")
+        }
         return device
     }
 }

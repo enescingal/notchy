@@ -42,10 +42,13 @@ final class HUDModule: NotchModule {
             }
             return true
         case .brightnessUp, .brightnessDown:
-            guard let brightness else { return false }
-            if event.isDown, let state = brightness.step(up: event.key == .brightnessUp, fine: fine) {
-                viewModel?.present(.hud(state))
-            }
+            // Not swallowing here (e.g. clamshell mode with only an external display) lets the
+            // system fall back to its own handling; the same gate applies to the matching
+            // key-up so we never swallow one half of a down/up pair.
+            guard let brightness, brightness.isUsable else { return false }
+            guard event.isDown else { return true }
+            guard let state = brightness.step(up: event.key == .brightnessUp, fine: fine) else { return false }
+            viewModel?.present(.hud(state))
             return true
         }
     }

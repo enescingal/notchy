@@ -24,11 +24,25 @@ final class BrightnessController {
         self.display = display
     }
 
+    /// Whether the built-in display is currently able to report/set brightness (e.g. false in
+    /// clamshell mode with only an external display attached).
+    var isUsable: Bool {
+        CGDisplayIsOnline(display) != 0
+    }
+
     func step(up: Bool, fine: Bool) -> HUDState? {
         var current: Float = 0
-        guard getBrightness(display, &current) == 0 else { return nil }
+        let getStatus = getBrightness(display, &current)
+        guard getStatus == 0 else {
+            Log.hud.error("Parlaklık okunamadı: \(getStatus)")
+            return nil
+        }
         let next = HUDStep.next(from: Double(current), up: up, fine: fine)
-        guard setBrightness(display, Float(next)) == 0 else { return nil }
+        let setStatus = setBrightness(display, Float(next))
+        guard setStatus == 0 else {
+            Log.hud.error("Parlaklık ayarlanamadı: \(setStatus)")
+            return nil
+        }
         return HUDState(kind: .brightness, level: next)
     }
 
