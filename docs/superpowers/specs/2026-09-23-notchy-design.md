@@ -67,7 +67,7 @@ Her modül bir **monitör** içerir; sistemi dinler ve olay üretir. Olay oluşt
 
 - **closed:** Çentikle aynı boyutta siyah şekil. Medya çalıyorsa ada hafifçe genişler, sağda küçük ekolayzır animasyonu görünür.
 - **peek:** Kısa süreli bildirim (HUD, şarj, AirPods). Ada yana doğru uzar; varsayılan süre HUD için 1.5 sn, diğerleri için 3 sn (ayarlanabilir).
-- **expanded:** Hover ile açılır (gecikme ayarlanabilir, varsayılan 0.1 sn). Medya bilgisi ve kontroller burada.
+- **expanded:** Hover ile açılır (gecikme ayarlanabilir, varsayılan 0.1 sn). Üstte her zaman hızlı kontroller (parlaklık, ses, ekran kilidi; bkz. [2026-09-23-quick-controls-design.md](2026-09-23-quick-controls-design.md)), medya varsa altında medya satırı.
 
 ### Öncelik ve kurallar
 

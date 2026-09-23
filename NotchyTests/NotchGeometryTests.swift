@@ -23,14 +23,15 @@ final class NotchGeometryTests: XCTestCase {
     }
 
     func testIslandSizes() {
-        XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: false, notch: notch), CGSize(width: 212, height: 32))
-        XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: true, notch: notch), CGSize(width: 276, height: 32))
-        XCTAssertEqual(NotchLayout.islandSize(for: .peek(Fixtures.pluggedIn), isMediaPlaying: false, notch: notch), CGSize(width: 432, height: 32))
-        XCTAssertEqual(NotchLayout.islandSize(for: .expanded, isMediaPlaying: false, notch: notch), CGSize(width: 472, height: 80))
+        XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: false, hasMedia: false, notch: notch), CGSize(width: 212, height: 32))
+        XCTAssertEqual(NotchLayout.islandSize(for: .closed, isMediaPlaying: true, hasMedia: false, notch: notch), CGSize(width: 276, height: 32))
+        XCTAssertEqual(NotchLayout.islandSize(for: .peek(Fixtures.pluggedIn), isMediaPlaying: false, hasMedia: false, notch: notch), CGSize(width: 432, height: 32))
+        XCTAssertEqual(NotchLayout.islandSize(for: .expanded, isMediaPlaying: false, hasMedia: false, notch: notch), CGSize(width: 472, height: 80))
+        XCTAssertEqual(NotchLayout.islandSize(for: .expanded, isMediaPlaying: false, hasMedia: true, notch: notch), CGSize(width: 472, height: 116))
     }
 
     func testPanelSizeFitsExpandedIslandWithMargin() {
-        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 520, height: 104))
+        XCTAssertEqual(NotchLayout.panelSize(notch: notch), CGSize(width: 520, height: 140))
     }
 
     func testIslandRectIsTopCenteredInPanel() {

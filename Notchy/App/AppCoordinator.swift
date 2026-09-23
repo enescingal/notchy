@@ -10,6 +10,7 @@ final class AppCoordinator {
 
     private lazy var panelController = NotchPanelController(viewModel: viewModel)
     private var menuBar: MenuBarController?
+    private var quickControls: QuickControls?
     private let settingsWindow = WindowPresenter()
     private let onboardingWindow = WindowPresenter()
     private let lifecycle: ModuleLifecycle
@@ -35,6 +36,9 @@ final class AppCoordinator {
             self?.lifecycle.setHasScreen(hasScreen)
         }
         panelController.start()
+        quickControls = QuickControls(viewModel: viewModel, volume: VolumeController(),
+                                      brightness: BrightnessController(), locker: ScreenLocker())
+        quickControls?.start()
 
         settings.objectWillChange
             .receive(on: RunLoop.main)

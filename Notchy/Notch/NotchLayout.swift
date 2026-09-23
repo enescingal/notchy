@@ -8,9 +8,11 @@ enum NotchLayout {
     static let expandedSideWidth: CGFloat = 120
     static let expandedMinWidth: CGFloat = 460
     static let expandedExtraHeight: CGFloat = 48
+    /// Extra height for the media row under the control row.
+    static let expandedRowHeight: CGFloat = 36
     static let panelMargin: CGFloat = 24
 
-    static func islandSize(for state: NotchState, isMediaPlaying: Bool, notch: CGSize) -> CGSize {
+    static func islandSize(for state: NotchState, isMediaPlaying: Bool, hasMedia: Bool, notch: CGSize) -> CGSize {
         let body: CGSize
         switch state {
         case .closed:
@@ -21,13 +23,13 @@ enum NotchLayout {
             body = CGSize(width: notch.width + 2 * peekSideWidth, height: notch.height)
         case .expanded:
             body = CGSize(width: max(notch.width + 2 * expandedSideWidth, expandedMinWidth),
-                          height: notch.height + expandedExtraHeight)
+                          height: notch.height + expandedExtraHeight + (hasMedia ? expandedRowHeight : 0))
         }
         return CGSize(width: body.width + 2 * earRadius, height: body.height)
     }
 
     static func panelSize(notch: CGSize) -> CGSize {
-        let expanded = islandSize(for: .expanded, isMediaPlaying: false, notch: notch)
+        let expanded = islandSize(for: .expanded, isMediaPlaying: false, hasMedia: true, notch: notch)
         return CGSize(width: expanded.width + 2 * panelMargin, height: expanded.height + panelMargin)
     }
 

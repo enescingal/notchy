@@ -7,9 +7,10 @@ struct NotchView: View {
     let isVirtualNotch: Bool
 
     private var isMediaPlaying: Bool { viewModel.media?.isPlaying == true }
+    private var hasMedia: Bool { viewModel.media != nil }
 
     private var islandSize: CGSize {
-        NotchLayout.islandSize(for: viewModel.state, isMediaPlaying: isMediaPlaying, notch: notchSize)
+        NotchLayout.islandSize(for: viewModel.state, isMediaPlaying: isMediaPlaying, hasMedia: hasMedia, notch: notchSize)
     }
 
     private var isHidden: Bool {
@@ -27,6 +28,7 @@ struct NotchView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .animation(.spring(response: 0.38, dampingFraction: 0.78), value: viewModel.state)
             .animation(.spring(response: 0.38, dampingFraction: 0.78), value: isMediaPlaying)
+            .animation(.spring(response: 0.38, dampingFraction: 0.78), value: hasMedia)
             .environment(\.colorScheme, .dark)
     }
 
@@ -85,13 +87,10 @@ struct ExpandedContentView: View {
                 }
             }
             .frame(height: notchSize.height)
-            Group {
+            VStack(spacing: 8) {
+                QuickControlsView(available: viewModel.availableControls) { viewModel.perform($0) }
                 if let media = viewModel.media {
                     MediaExpandedView(media: media) { viewModel.send($0) }
-                } else {
-                    Text("Şu an çalan bir şey yok")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.6))
                 }
             }
             .padding(.horizontal, NotchLayout.earRadius + 20)
