@@ -7,16 +7,25 @@ final class MediaRemoteAdapterSource: MediaSource {
     var onFailure: (() -> Void)?
 
     private static let perl = URL(fileURLWithPath: "/usr/bin/perl")
+    /// Once a stream process has stayed up this long without exiting, treat it as healthy
+    /// again and reset the restart backoff.
+    private static let stableRunDuration: TimeInterval = 10
 
     private let scriptURL: URL
     private let frameworkURL: URL
     private let scheduler: Scheduler
-    private var process: Process?
+    private let launchProcess: @MainActor (URL, [String]) throws -> StreamProcess
+
+    private var process: StreamProcess?
     private var lineBuffer = LineBuffer()
     private var restartPolicy = RestartPolicy()
     private var isStopped = true
 
-    init?(bundle: Bundle = .main, scheduler: Scheduler) {
+    init?(
+        bundle: Bundle = .main,
+        scheduler: Scheduler,
+        launchProcess: @escaping @MainActor (URL, [String]) throws -> StreamProcess = MediaRemoteAdapterSource.launchRealProcess
+    ) {
         guard let directory = bundle.resourceURL?.appendingPathComponent("MediaRemoteAdapter") else { return nil }
         let script = directory.appendingPathComponent("mediaremote-adapter.pl")
         let framework = directory.appendingPathComponent("MediaRemoteAdapter.framework")
@@ -25,6 +34,7 @@ final class MediaRemoteAdapterSource: MediaSource {
         self.scriptURL = script
         self.frameworkURL = framework
         self.scheduler = scheduler
+        self.launchProcess = launchProcess
     }
 
     func start() {
@@ -35,11 +45,8 @@ final class MediaRemoteAdapterSource: MediaSource {
 
     func stop() {
         isStopped = true
-        guard let process else { return }
-        process.terminationHandler = nil
-        (process.standardOutput as? Pipe)?.fileHandleForReading.readabilityHandler = nil
-        if process.isRunning { process.terminate() }
-        self.process = nil
+        process?.stop()
+        process = nil
     }
 
     func send(_ command: MediaCommand) {
@@ -53,33 +60,41 @@ final class MediaRemoteAdapterSource: MediaSource {
         }
     }
 
+    private static func launchRealProcess(executableURL: URL, arguments: [String]) throws -> StreamProcess {
+        let process = RealStreamProcess(executableURL: executableURL, arguments: arguments)
+        try process.start()
+        return process
+    }
+
     private func launch() {
-        let process = Process()
-        process.executableURL = Self.perl
-        process.arguments = [scriptURL.path, frameworkURL.path, "stream", "--no-diff", "--no-artwork", "--debounce=100"]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
         lineBuffer = LineBuffer()
-        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
-            let data = handle.availableData
-            if data.isEmpty {
-                handle.readabilityHandler = nil // EOF; otherwise this keeps firing
-                return
-            }
-            DispatchQueue.main.async { self?.receive(data) }
-        }
-        process.terminationHandler = { [weak self] finished in
-            let status = finished.terminationStatus
-            DispatchQueue.main.async { self?.processExited(status: status) }
-        }
+        let arguments = [scriptURL.path, frameworkURL.path, "stream", "--no-diff", "--no-artwork", "--debounce=100"]
+        let newProcess: StreamProcess
         do {
-            try process.run()
-            self.process = process
+            newProcess = try launchProcess(Self.perl, arguments)
         } catch {
             Log.media.error("Medya adaptörü başlatılamadı: \(error.localizedDescription)")
-            processExited(status: -1)
+            handleExit(status: -1, processID: nil)
+            return
         }
+        process = newProcess
+        let processID = ObjectIdentifier(newProcess)
+        newProcess.onOutput = { [weak self] data in
+            guard let self, self.isCurrent(processID) else { return } // stale output from a replaced process
+            self.receive(data)
+        }
+        newProcess.onExit = { [weak self] status in
+            self?.handleExit(status: status, processID: processID)
+        }
+        scheduler.schedule(after: Self.stableRunDuration) { [weak self] in
+            guard let self, self.isCurrent(processID) else { return }
+            self.restartPolicy.reset()
+        }
+    }
+
+    private func isCurrent(_ id: ObjectIdentifier) -> Bool {
+        guard let process else { return false }
+        return ObjectIdentifier(process) == id
     }
 
     private func receive(_ data: Data) {
@@ -87,7 +102,6 @@ final class MediaRemoteAdapterSource: MediaSource {
         for line in lineBuffer.append(data) {
             switch MediaPayloadParser.parse(line) {
             case .update(let media):
-                restartPolicy.reset()
                 onUpdate?(media)
             case .ignored:
                 Log.media.debug("Ayrıştırılamayan adaptör satırı atlandı")
@@ -95,9 +109,12 @@ final class MediaRemoteAdapterSource: MediaSource {
         }
     }
 
-    private func processExited(status: Int32) {
-        process = nil
+    private func handleExit(status: Int32, processID: ObjectIdentifier?) {
         guard !isStopped else { return }
+        // A nil processID means launching itself failed, before any process was current.
+        // Otherwise ignore a stale exit notification from a process we've already replaced.
+        if let processID, !isCurrent(processID) { return }
+        process = nil
         onUpdate?(nil)
         guard let delay = restartPolicy.nextDelay() else {
             Log.media.error("Medya adaptörü sürekli kapanıyor; medya modülü devre dışı")

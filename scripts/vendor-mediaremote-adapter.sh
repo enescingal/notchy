@@ -8,7 +8,8 @@ trap 'rm -rf "$WORK"' EXIT
 
 git clone --quiet https://github.com/ungive/mediaremote-adapter.git "$WORK/src"
 git -C "$WORK/src" checkout --quiet "$COMMIT"
-cmake -S "$WORK/src" -B "$WORK/build" -DCMAKE_BUILD_TYPE=Release >/dev/null
+cmake -S "$WORK/src" -B "$WORK/build" -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 -DCMAKE_OSX_ARCHITECTURES=arm64 >/dev/null
 cmake --build "$WORK/build" >/dev/null
 
 DEST=Vendor/MediaRemoteAdapter
