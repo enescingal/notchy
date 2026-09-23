@@ -79,7 +79,7 @@ final class AppCoordinator {
         switch id {
         case .media: return nil
         case .hud: return nil
-        case .battery: return nil
+        case .battery: return BatteryModule(viewModel: viewModel)
         case .bluetooth: return nil
         }
     }
