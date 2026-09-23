@@ -28,42 +28,30 @@ derlemeyi o kimlikle imzalar ve izin derlemeler arasında korunur (kimlikleri g�
     echo 'Apple Development: Ad Soyad (XXXXXXXXXX)' > .signing-identity
 
 ## Performans (ölçülen)
-Ölçüm tarihi: 23.09.2026 (final inceleme düzeltmesi — önceki tablo kendisiyle çelişiyordu
-ve `ps`'in `%CPU` sütununu yanlış açıklıyordu, bkz. altta). Makine: Apple M4 Pro
-MacBook Pro, macOS 26.6.2. Release derlemesi
-(`build/DerivedData/Build/Products/Release/Notchy.app`), `onboarding.completed` `true`
-ayarlanıp açıldı, çentikten uzakta imleç hareketsiz bırakılarak 60 sn beklendikten sonra
-ölçüldü. Ölçüm penceresinde bir sekmede medya gerçekten çalıyordu
-(`mediaremote-adapter.pl ... get --no-artwork` çıktısı `"playing":true` döndürdü); yani
-bu sayılar "medya yok" saf boşta durumunu değil, "çentik kapalı, imleç uzakta ama medya
-akışı arka planda işleniyor" durumunu yansıtıyor. Adaptör alt süreci
-(`mediaremote-adapter.pl stream ...`) `pgrep -f mediaremote-adapter.pl` ile bulundu.
+Ölçüm: 23.09.2026, Apple M4 Pro MacBook Pro, macOS 26.6.2, Release derlemesi
+(`build/DerivedData/Build/Products/Release/Notchy.app`). Uygulama açıldıktan 60 sn sonra
+`top -l 13 -s 5 -stats pid,cpu` ile 5 sn arayla 13 örnek alındı, ilk örnek atıldı. Ölçüm
+boyunca hiçbir medya çalmıyordu (adaptörün `get` çıktısı başta ve sonda kontrol edildi).
 
-`top -l 13 -s 5 -stats pid,command,cpu,rsize -pid <Notchy> -pid <adapter>` ile 5 sn
-arayla 13 örnek alındı; ilk örnek (ısınma payı bırakmak için) atıldı, kalan 12 örnek:
+| Süreç   | CPU (12 örnek)        | Bellek (Activity Monitor) | RSS   |
+|---------|-----------------------|--------------------------:|------:|
+| Notchy  | %0.0–1.0 (ort. ≈%0.2) | 17 MB                     | 53 MB |
+| Adaptör | %0.0 (hepsi)          | 9 MB                      | 26 MB |
+| Toplam  |                       | 26 MB                     | 80 MB |
 
-| Süreç   | RSS (12 örnekte sabit) | %CPU aralığı | %CPU ortalama |
-|---------|------------------------:|--------------:|---------------:|
-| Notchy  | 16 MB                   | 0.0 – 5.0 %    | ≈1.8 %          |
-| Adapter | ≈9.1 MB                 | 0.0 % (hepsi)  | 0.0 %           |
+- **Bellek:** "Bellek" sütunu `footprint` aracının verdiği, Activity Monitor'de görünen
+  değerdir ve 80 MB hedefinin çok altındadır. RSS (`ps -o rss`), paylaşılan sistem
+  kütüphanelerinin (AppKit, SwiftUI, perl) sayfalarını her sürece ayrı ayrı saydığı için
+  gerçek maliyetin üstündedir; toplamı hedefin tam sınırındadır.
+- **CPU:** Boşta Notchy ilk üç örnekte %0.5–1.0, sonraki dokuz örnekte (45 sn) %0.0
+  kullandı; adaptör hiç CPU kullanmadı.
+- **Müzik çalarken:** Kapalı adada ekolayzır animasyonu sürekli çizilir. Daha önceki bir
+  ölçümde (bir tarayıcı sekmesinde medya çalarken) Notchy %0–5, ortalama ≈%1.8 kullanmıştı;
+  bu durum bu turda yeniden ölçülmedi.
 
-Toplam RSS ≈ 25 MB, hedeflenen <80 MB sınırının belirgin şekilde altında.
-
-Notchy'nin %CPU'su bu turda belirgin şekilde sıfır değil (12 örnekte 0.0–5.0 % arası,
-ortalama ≈%1.8): bunu dürüstçe böyle bildiriyoruz. Muhtemel açıklaması, ölçüm penceresinde
-medyanın gerçekten çalıyor olması — adaptör sürekli now-playing güncellemesi akıtıyor ve
-`MediaModule` panel görünür olmasa bile bunu işliyor — ve ölçüm anında makinenin başka
-işlerle de meşgul olması (`Load Avg` ≈4.5–5.9 aynı pencerede). Bu turda bunun ötesinde
-yeni bir performans soruşturması açılmadı; "boşta ≈%0 CPU" iddiası bu ölçümle
-doğrulanamadı, sayı olduğu gibi raporlanıyor.
-
-`ps`'in `%CPU` sütunu, önceki sürümün iddia ettiğinin aksine süreç başlangıcından beri
-bir ortalama DEĞİLDİR: `ps(1)` man sayfasına göre önceki gerçek zamanın en fazla bir
-dakikası üzerinden üstel ağırlıklı, kayan (decaying) bir ortalamadır. Bu yüzden art arda
-alınan iki `ps` örneği arasında görülen fark, sürecin gerçekten hızlanmakta olduğu
-anlamına gelmez; yukarıdaki ölçüm bu yüzden `ps` yerine `top`'un ardışık örneklerine
-dayanıyor. Medya çalarken ekolayzer animasyonu sırasındaki CPU kullanımı panel görünürken
-ayrıca insan gözetiminde gözlemlenmelidir (bkz. manuel kontrol listesi).
+`ps`'in `%CPU` sütunu süreç başlangıcından beri bir ortalama değildir; `ps(1)`'e göre son bir
+dakikalık üstel ağırlıklı, kayan bir ortalamadır. Bu yüzden CPU için `top`'un ardışık
+örnekleri kullanıldı.
 
 ## Lisanslar
 Medya bilgisi için [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3-Clause) kullanılır; bkz. `Vendor/MediaRemoteAdapter/LICENSE`.
