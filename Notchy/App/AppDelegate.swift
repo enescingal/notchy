@@ -10,9 +10,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Self.isRunningTests else { return }
-        let coordinator = AppCoordinator()
+        let coordinator = AppCoordinator(settings: SettingsStore(defaults: .standard))
         coordinator.start()
         self.coordinator = coordinator
         Log.app.info("Notchy başladı")
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        coordinator?.stopAll()
     }
 }
