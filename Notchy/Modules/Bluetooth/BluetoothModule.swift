@@ -54,6 +54,7 @@ final class BluetoothModule: NSObject, NotchModule {
     @objc private func deviceDisconnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
         guard let address = device.addressString else { return }
         disconnectNotifications.removeValue(forKey: address)?.unregister()
+        alreadyConnected.remove(address)
         let name = device.nameOrAddress ?? "Kulaklık"
         let kind = DeviceKind.classify(name: name, majorClass: device.deviceClassMajor)
         guard kind.isAudio else { return }
