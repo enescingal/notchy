@@ -38,4 +38,9 @@ enum NotchLayout {
                width: islandSize.width,
                height: islandSize.height)
     }
+
+    /// On a screen without a physical notch the idle island is not drawn; its area still detects hover.
+    static func isHidden(state: NotchState, isMediaPlaying: Bool, isVirtualNotch: Bool) -> Bool {
+        isVirtualNotch && state == .closed && !isMediaPlaying
+    }
 }
