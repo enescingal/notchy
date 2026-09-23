@@ -10,13 +10,13 @@ Notchy, [Alcove](https://tryalcove.com/) benzeri bir macOS uygulamasıdır: MacB
 ### Kısıtlar
 
 - Yalnızca macOS, minimum **macOS 14 Sonoma**.
-- Yalnızca **yerleşik çentikli ekranda** çalışır. Çentikli ekran yoksa ada gösterilmez.
+- Ada farenin bulunduğu ekranda görünür: çentikli ekranda gerçek çentiğin üstünde, diğer ekranlarda sanal çentikte (bkz. [2026-09-23-external-display-design.md](2026-09-23-external-display-design.md)).
 - Mac App Store dışı dağıtım (event tap ve gizli framework kullanımı nedeniyle sandbox'sız).
 - **Hafiflik kuralı:** Zamanlayıcıyla sorgulama (polling) yok; tüm modüller sistem bildirimleriyle olay tabanlı çalışır. Hedef: boşta ~%0 CPU, < 80 MB RAM.
 
 ### Kapsam dışı (v1)
 
-Albüm kapağı, takvim, dosya rafı, kilit ekranı widget'ları, bildirim yansıtma, harici monitör desteği, otomatik güncelleme (Sparkle), imzalı/notarize dağıtım.
+Albüm kapağı, takvim, dosya rafı, kilit ekranı widget'ları, bildirim yansıtma, otomatik güncelleme (Sparkle), imzalı/notarize dağıtım.
 
 ## 2. Mimari
 
@@ -51,7 +51,7 @@ Her modül bir **monitör** içerir; sistemi dinler ve olay üretir. Olay oluşt
 
 - Kenarlıksız, şeffaf `NSPanel`; `nonactivatingPanel` (odak çalmaz), seviye menü çubuğunun üstünde, `collectionBehavior`: `canJoinAllSpaces`, `fullScreenAuxiliary`, `stationary`.
 - Konum/boyut: `NSScreen.safeAreaInsets.top` (çentik yüksekliği) ve `auxiliaryTopLeftArea` / `auxiliaryTopRightArea` (çentik genişliği) ile hesaplanır.
-- Çentikli ekran yoksa panel oluşturulmaz; menü çubuğu menüsünde "Çentikli ekran bulunamadı" gösterilir.
+- Panel farenin bulunduğu ekrana taşınır; çentiksiz ekranlarda sanal çentik kullanılır (bkz. [2026-09-23-external-display-design.md](2026-09-23-external-display-design.md)).
 - `NSApplication.didChangeScreenParametersNotification` ile ekran değişince yeniden hesaplanır.
 - Panel, genişlemiş boyuttan biraz büyüktür. Adanın dışındaki şeffaf alan tıklamaları geçirir (hit-test yalnızca ada şekli içinde).
 

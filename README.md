@@ -7,9 +7,10 @@ MacBook çentiğini Dynamic Island benzeri canlı bir alana dönüştüren macOS
 - Şarj takma/çıkarma ve düşük pil (%20, %10) bildirimleri
 - AirPods / Bluetooth kulaklık bağlanma bildirimi ve pil seviyeleri
 - Çalan medya: şarkı bilgisi, oynat/duraklat/ileri/geri, iki parmakla kaydırma
+- Harici ekranlar: ada farenin olduğu ekrana geçer; çentiksiz ekranda boştayken gizlenir
 
 ## Gereksinimler
-- Çentikli ekranlı MacBook, macOS 14+
+- macOS 14+; en iyi çentikli MacBook'ta çalışır, harici ve çentiksiz ekranlarda sanal çentik kullanılır
 - Xcode, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`), CMake (yalnızca adaptörü yeniden derlemek için)
 
 ## Geliştirme

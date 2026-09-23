@@ -3,11 +3,17 @@ import SwiftUI
 struct NotchView: View {
     @ObservedObject var viewModel: NotchViewModel
     let notchSize: CGSize
+    /// True on screens without a physical notch, where the idle island is hidden.
+    let isVirtualNotch: Bool
 
     private var isMediaPlaying: Bool { viewModel.media?.isPlaying == true }
 
     private var islandSize: CGSize {
         NotchLayout.islandSize(for: viewModel.state, isMediaPlaying: isMediaPlaying, notch: notchSize)
+    }
+
+    private var isHidden: Bool {
+        NotchLayout.isHidden(state: viewModel.state, isMediaPlaying: isMediaPlaying, isVirtualNotch: isVirtualNotch)
     }
 
     private var bottomRadius: CGFloat { viewModel.state == .expanded ? 22 : 10 }
@@ -17,6 +23,7 @@ struct NotchView: View {
             .frame(width: islandSize.width, height: islandSize.height)
             .background(Color.black)
             .clipShape(NotchShape(topRadius: NotchLayout.earRadius, bottomRadius: bottomRadius))
+            .opacity(isHidden ? 0 : 1)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .animation(.spring(response: 0.38, dampingFraction: 0.78), value: viewModel.state)
             .animation(.spring(response: 0.38, dampingFraction: 0.78), value: isMediaPlaying)
