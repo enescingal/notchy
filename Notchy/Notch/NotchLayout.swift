@@ -1,5 +1,18 @@
 import CoreGraphics
 
+/// What the island shows besides its state; drives its size.
+struct IslandContent: Equatable {
+    var isMediaPlaying = false
+    var hasMedia = false
+    var hasCountdown = false
+    var isEditingCountdown = false
+
+    /// Rows under the notch while expanded: controls, then countdown, then media.
+    var expandedRows: Int {
+        1 + (hasCountdown || isEditingCountdown ? 1 : 0) + (hasMedia ? 1 : 0)
+    }
+}
+
 enum NotchLayout {
     /// Inward-curved top corners drawn outside the physical notch on both sides.
     static let earRadius: CGFloat = 6

@@ -17,6 +17,7 @@ struct NotchConfiguration: Equatable {
     var peekDuration: TimeInterval = 3.0
     var hudDuration: TimeInterval = 1.5
     var collapseDelay: TimeInterval = 0.3
+    var timerDoneDuration: TimeInterval = 5.0
 }
 
 @MainActor
@@ -27,10 +28,16 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var expandedHUD: HUDState?
     /// Quick controls the row can use right now; the others are drawn dimmed.
     @Published var availableControls: Set<QuickControl> = []
+    /// The running or paused countdown, if any.
+    @Published private(set) var countdown: CountdownState?
+    /// True while the minutes field is open; keeps the island expanded and takes the keyboard.
+    @Published private(set) var isEditingCountdown = false
 
     var configuration = NotchConfiguration()
     var mediaCommandHandler: ((MediaCommand) -> Void)?
     var controlHandler: ((QuickControl) -> Void)?
+    /// Plays the done sound; set by the app so the view model stays free of AppKit.
+    var onCountdownFinished: (() -> Void)?
 
     private let scheduler: Scheduler
     private var pending: PeekContent?
@@ -38,9 +45,18 @@ final class NotchViewModel: ObservableObject {
     private var hoverToken: SchedulerToken?
     private var expandedHUDToken: SchedulerToken?
     private var isHovering = false
+    private let now: () -> Date
+    private var countdownToken: SchedulerToken?
 
-    init(scheduler: Scheduler) {
+    init(scheduler: Scheduler, now: @escaping () -> Date = Date.init) {
         self.scheduler = scheduler
+        self.now = now
+    }
+
+    /// What the island shows besides its state; drives its size.
+    var islandContent: IslandContent {
+        IslandContent(isMediaPlaying: media?.isPlaying == true, hasMedia: media != nil,
+                      hasCountdown: countdown != nil, isEditingCountdown: isEditingCountdown)
     }
 
     func present(_ content: PeekContent) {
@@ -66,7 +82,7 @@ final class NotchViewModel: ObservableObject {
         if hovering {
             guard state != .expanded else { return }
             hoverToken = scheduler.schedule(after: configuration.hoverDelay) { [weak self] in self?.expand() }
-        } else if state == .expanded {
+        } else if state == .expanded, !isEditingCountdown {
             hoverToken = scheduler.schedule(after: configuration.collapseDelay) { [weak self] in self?.collapse() }
         }
     }
@@ -91,7 +107,12 @@ final class NotchViewModel: ObservableObject {
     private func showPeek(_ content: PeekContent) {
         peekToken?.cancel()
         state = .peek(content)
-        let duration = content.isHUD ? configuration.hudDuration : configuration.peekDuration
+        let duration: TimeInterval
+        switch content {
+        case .hud: duration = configuration.hudDuration
+        case .timerDone: duration = configuration.timerDoneDuration
+        case .battery, .bluetooth: duration = configuration.peekDuration
+        }
         peekToken = scheduler.schedule(after: duration) { [weak self] in self?.peekFinished() }
     }
 
@@ -118,6 +139,7 @@ final class NotchViewModel: ObservableObject {
         expandedHUDToken?.cancel()
         expandedHUDToken = nil
         expandedHUD = nil
+        isEditingCountdown = false
         state = .closed
     }
 
@@ -127,5 +149,69 @@ final class NotchViewModel: ObservableObject {
         expandedHUDToken = scheduler.schedule(after: configuration.hudDuration) { [weak self] in
             self?.expandedHUD = nil
         }
+    }
+
+    // MARK: - Countdown
+
+    /// The timer button: opens or closes the minutes field while no countdown exists.
+    func toggleCountdownEntry() {
+        guard countdown == nil else { return }
+        if isEditingCountdown {
+            cancelCountdownEntry()
+        } else {
+            isEditingCountdown = true
+        }
+    }
+
+    func cancelCountdownEntry() {
+        guard isEditingCountdown else { return }
+        isEditingCountdown = false
+        collapseIfMouseLeft()
+    }
+
+    /// Starts a countdown from the minutes field; values outside 1...999 are ignored.
+    func startCountdown(minutes: Int) {
+        guard (1...999).contains(minutes) else { return }
+        isEditingCountdown = false
+        run(for: TimeInterval(minutes) * 60)
+        collapseIfMouseLeft()
+    }
+
+    func pauseCountdown() {
+        guard case .running(let endDate) = countdown else { return }
+        countdownToken?.cancel()
+        countdownToken = nil
+        countdown = .paused(remaining: max(0, endDate.timeIntervalSince(now())))
+    }
+
+    func resumeCountdown() {
+        guard case .paused(let remaining) = countdown else { return }
+        run(for: remaining)
+    }
+
+    func cancelCountdown() {
+        countdownToken?.cancel()
+        countdownToken = nil
+        countdown = nil
+    }
+
+    private func run(for duration: TimeInterval) {
+        countdownToken?.cancel()
+        countdown = .running(endDate: now().addingTimeInterval(duration))
+        countdownToken = scheduler.schedule(after: duration) { [weak self] in self?.countdownFinished() }
+    }
+
+    private func countdownFinished() {
+        countdownToken = nil
+        countdown = nil
+        present(.timerDone)
+        onCountdownFinished?()
+    }
+
+    /// Editing kept the island open after the mouse left; close it the normal way now.
+    private func collapseIfMouseLeft() {
+        guard state == .expanded, !isHovering else { return }
+        hoverToken?.cancel()
+        hoverToken = scheduler.schedule(after: configuration.collapseDelay) { [weak self] in self?.collapse() }
     }
 }

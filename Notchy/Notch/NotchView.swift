@@ -68,6 +68,7 @@ struct PeekContentView: View {
         case .hud(let hud): HUDPeekView(hud: hud, notchWidth: notchWidth)
         case .battery(let event): BatteryPeekView(event: event, notchWidth: notchWidth)
         case .bluetooth(let event): BluetoothPeekView(event: event, notchWidth: notchWidth)
+        case .timerDone: EmptyView()
         }
     }
 }
