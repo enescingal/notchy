@@ -11,10 +11,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Self.isRunningTests else { return }
+        // Installed before the coordinator starts (and spawns the media adapter subprocess)
+        // so there's no window where a SIGTERM would kill the app the default way with a
+        // child already running.
+        installSigtermHandler()
         let coordinator = AppCoordinator(settings: SettingsStore(defaults: .standard))
         coordinator.start()
         self.coordinator = coordinator
-        installSigtermHandler()
         Log.app.info("Notchy başladı")
     }
 

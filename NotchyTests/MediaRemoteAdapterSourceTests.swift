@@ -100,6 +100,44 @@ final class MediaRemoteAdapterSourceTests: XCTestCase {
         XCTAssertEqual(log.launches.count, 3, "restart policy should have reset after staying up 10s")
     }
 
+    /// A stale process's memory can be reused by a later one (the deallocated `StreamProcess`
+    /// frees its address, and a subsequent `launchProcess` call can get the same one back), so
+    /// process *identity* alone can't distinguish "the current launch" from "a dead one that
+    /// happens to share an address" — this simulates that by literally returning the same fake
+    /// instance from `launchProcess` on every launch, and proves the exited launch's stability
+    /// timer still can't reset the backoff meant for the newer launch.
+    func testStaleStabilityTimerCannotResetBackoffWhenProcessIdentityIsReused() {
+        let scheduler = ManualScheduler()
+        let reusedProcess = FakeStreamProcess()
+        var launchCount = 0
+        let source = MediaRemoteAdapterSource(bundle: makeFakeAdapterBundle(), scheduler: scheduler) { _, _ in
+            launchCount += 1
+            return reusedProcess // simulates malloc reusing the same address across launches
+        }!
+        source.start()
+        XCTAssertEqual(launchCount, 1)
+
+        // The first launch exits almost immediately — well before its 10s stability timer
+        // (originally due at t=10) would fire — and schedules a restart after the first
+        // backoff delay (1s).
+        reusedProcess.exit(status: 1)
+        scheduler.advance(by: 1) // -> second launch, same (reused) process identity
+        XCTAssertEqual(launchCount, 2)
+
+        // Advance to exactly t=10, where the FIRST launch's stability timer was due. With an
+        // identity-based check this would wrongly match the reused process and reset the
+        // backoff; with a generation counter (and the timer cancelled on exit) it must not.
+        scheduler.advance(by: 9)
+
+        reusedProcess.exit(status: 1)
+        // If the backoff had been wrongly reset, the next restart would use delay 1 (not 2)
+        // and a third launch would already exist after just 1 more second.
+        scheduler.advance(by: 1)
+        XCTAssertEqual(launchCount, 2, "stale stability timer must not have reset the backoff")
+        scheduler.advance(by: 1)
+        XCTAssertEqual(launchCount, 3, "restart should fire once the correct (non-reset) 2s delay elapses")
+    }
+
     func testIgnoresStaleOutputAndExitFromAReplacedProcess() {
         let scheduler = ManualScheduler()
         let log = LaunchLog()

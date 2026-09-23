@@ -21,6 +21,13 @@ final class MediaRemoteAdapterSource: MediaSource {
     private var restartPolicy = RestartPolicy()
     private var isStopped = true
 
+    /// Identifies "which launch attempt" is current. Incremented on every `launch()` call.
+    /// A `Process`/`StreamProcess` that has already exited can be deallocated and its memory
+    /// reused by a later one, so object identity (`ObjectIdentifier`) is not a safe way to
+    /// tell a stale callback from a current one; this monotonic counter never repeats.
+    private var generation = 0
+    private var stabilityToken: SchedulerToken?
+
     init?(
         bundle: Bundle = .main,
         scheduler: Scheduler,
@@ -45,6 +52,8 @@ final class MediaRemoteAdapterSource: MediaSource {
 
     func stop() {
         isStopped = true
+        stabilityToken?.cancel()
+        stabilityToken = nil
         process?.stop()
         process = nil
     }
@@ -68,33 +77,30 @@ final class MediaRemoteAdapterSource: MediaSource {
 
     private func launch() {
         lineBuffer = LineBuffer()
+        generation += 1
+        let currentGeneration = generation
         let arguments = [scriptURL.path, frameworkURL.path, "stream", "--no-diff", "--no-artwork", "--debounce=100"]
         let newProcess: StreamProcess
         do {
             newProcess = try launchProcess(Self.perl, arguments)
         } catch {
             Log.media.error("Medya adaptörü başlatılamadı: \(error.localizedDescription)")
-            handleExit(status: -1, processID: nil)
+            handleExit(status: -1, generation: currentGeneration)
             return
         }
         process = newProcess
-        let processID = ObjectIdentifier(newProcess)
         newProcess.onOutput = { [weak self] data in
-            guard let self, self.isCurrent(processID) else { return } // stale output from a replaced process
+            guard let self, self.generation == currentGeneration else { return } // stale output from a replaced process
             self.receive(data)
         }
         newProcess.onExit = { [weak self] status in
-            self?.handleExit(status: status, processID: processID)
+            self?.handleExit(status: status, generation: currentGeneration)
         }
-        scheduler.schedule(after: Self.stableRunDuration) { [weak self] in
-            guard let self, self.isCurrent(processID) else { return }
+        stabilityToken?.cancel()
+        stabilityToken = scheduler.schedule(after: Self.stableRunDuration) { [weak self] in
+            guard let self, self.generation == currentGeneration else { return }
             self.restartPolicy.reset()
         }
-    }
-
-    private func isCurrent(_ id: ObjectIdentifier) -> Bool {
-        guard let process else { return false }
-        return ObjectIdentifier(process) == id
     }
 
     private func receive(_ data: Data) {
@@ -109,11 +115,12 @@ final class MediaRemoteAdapterSource: MediaSource {
         }
     }
 
-    private func handleExit(status: Int32, processID: ObjectIdentifier?) {
+    private func handleExit(status: Int32, generation exitedGeneration: Int) {
         guard !isStopped else { return }
-        // A nil processID means launching itself failed, before any process was current.
-        // Otherwise ignore a stale exit notification from a process we've already replaced.
-        if let processID, !isCurrent(processID) { return }
+        // Ignore a stale exit notification from a launch attempt we've already superseded.
+        guard exitedGeneration == generation else { return }
+        stabilityToken?.cancel()
+        stabilityToken = nil
         process = nil
         onUpdate?(nil)
         guard let delay = restartPolicy.nextDelay() else {
