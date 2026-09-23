@@ -6,7 +6,9 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "capsule.fill").font(.system(size: 44))
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 72, height: 72)
             Text("Notchy'ye hoş geldin").font(.title2.bold())
             Text("Notchy çentiğini canlı bir alana dönüştürür: müzik kontrolleri, ses ve parlaklık göstergesi, şarj ve AirPods bildirimleri.")
                 .multilineTextAlignment(.center)

@@ -9,7 +9,10 @@ final class MenuBarController: NSObject {
     init(onSettings: @escaping () -> Void) {
         self.onSettings = onSettings
         super.init()
-        statusItem.button?.image = NSImage(systemSymbolName: "capsule.fill", accessibilityDescription: "Notchy")
+        let icon = NSImage(named: "MenuBarIcon")
+        icon?.isTemplate = true
+        icon?.accessibilityDescription = "Notchy"
+        statusItem.button?.image = icon
         let menu = NSMenu()
         noNotchItem.isEnabled = false
         noNotchItem.isHidden = true
