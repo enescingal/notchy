@@ -22,6 +22,7 @@ final class MediaModule: NotchModule {
         source.onFailure = { [weak self] in
             self?.status.mediaUnavailable = true
             self?.viewModel?.updateMedia(nil)
+            self?.viewModel?.mediaCommandHandler = nil
         }
         viewModel?.mediaCommandHandler = { [weak source] command in source?.send(command) }
         source.start()

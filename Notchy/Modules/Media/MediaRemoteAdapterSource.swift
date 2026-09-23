@@ -119,6 +119,11 @@ final class MediaRemoteAdapterSource: MediaSource {
         guard !isStopped else { return }
         // Ignore a stale exit notification from a launch attempt we've already superseded.
         guard exitedGeneration == generation else { return }
+        // Invalidate this generation now: output already buffered by the exited process's pipe
+        // can still be delivered after this point (before the next `launch()` runs), and must
+        // not pass the `onOutput` generation check below and be treated as live — that would
+        // contradict the `onUpdate(nil)` sent just below.
+        generation += 1
         stabilityToken?.cancel()
         stabilityToken = nil
         process = nil

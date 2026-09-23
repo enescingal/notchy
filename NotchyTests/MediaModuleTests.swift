@@ -47,6 +47,9 @@ final class MediaModuleTests: XCTestCase {
         source.onFailure?()
         XCTAssertTrue(status.mediaUnavailable)
         XCTAssertNil(viewModel.media)
+        // The handler must not still point at the dead source (module.stop() clears it, but
+        // onFailure runs while the module considers itself started, so it must clear it too).
+        XCTAssertNil(viewModel.mediaCommandHandler)
     }
 
     func testMissingSourceMarksUnavailable() {

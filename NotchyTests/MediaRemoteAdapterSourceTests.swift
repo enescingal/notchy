@@ -158,4 +158,30 @@ final class MediaRemoteAdapterSourceTests: XCTestCase {
         log.launches[0].exit(status: 0)
         XCTAssertEqual(log.launches.count, 2, "a stale exit must not trigger another relaunch")
     }
+
+    /// A process's stdout pipe can still deliver buffered data after it has already exited —
+    /// i.e. after `handleExit` ran and called `onUpdate(nil)` — and before the scheduled
+    /// relaunch happens. Since `generation` had not changed yet, that late output used to pass
+    /// the `onOutput` generation check and get treated as a live update, resetting the "gone"
+    /// state `onUpdate(nil)` had just reported.
+    func testIgnoresOutputThatArrivesAfterExitButBeforeTheNextLaunch() {
+        let scheduler = ManualScheduler()
+        let log = LaunchLog()
+        let source = makeSource(scheduler: scheduler, log: log)
+        var updates: [MediaState?] = []
+        source.onUpdate = { updates.append($0) }
+        source.start()
+        XCTAssertEqual(log.launches.count, 1)
+
+        log.launches[0].exit(status: 1) // schedules a restart after the first backoff delay (1s)
+        XCTAssertEqual(updates.count, 1)
+        XCTAssertNil(updates[0], "handleExit must report the source going idle")
+        updates.removeAll()
+
+        log.launches[0].emit(#"{"type":"data","diff":false,"payload":{"title":"Stale","artist":"","playing":true}}"#)
+        XCTAssertTrue(updates.isEmpty, "output from an already-exited process must not reach onUpdate")
+
+        scheduler.advance(by: 1)
+        XCTAssertEqual(log.launches.count, 2, "the scheduled restart must still happen normally")
+    }
 }

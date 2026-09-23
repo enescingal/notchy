@@ -42,9 +42,11 @@ final class BluetoothModule: NSObject, NotchModule {
         let name = device.nameOrAddress ?? "Kulaklık"
         let kind = DeviceKind.classify(name: name, majorClass: device.deviceClassMajor)
         guard kind.isAudio else { return }
-        // Battery levels are published a moment after the link comes up.
-        scheduler.schedule(after: 1.5) { [weak self, weak device] in
-            guard let self, let device, device.isConnected() else { return }
+        // Battery levels are published a moment after the link comes up. `device` is captured
+        // strongly: IOBluetooth does not guarantee it keeps the object alive on its own, and a
+        // weak capture here would let the peek silently disappear if it were deallocated first.
+        scheduler.schedule(after: 1.5) { [weak self, device] in
+            guard let self, device.isConnected() else { return }
             let event = BluetoothEvent(name: name, kind: kind, isConnected: true,
                                        battery: BluetoothBatteryReader.read(from: device))
             self.viewModel?.present(.bluetooth(event))
