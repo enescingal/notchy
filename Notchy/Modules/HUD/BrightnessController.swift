@@ -30,13 +30,6 @@ final class BrightnessController {
         CGDisplayIsOnline(display) != 0
     }
 
-    /// The built-in display's brightness right now, or nil if it can't be read.
-    var current: HUDState? {
-        var value: Float = 0
-        guard getBrightness(display, &value) == 0 else { return nil }
-        return HUDState(kind: .brightness, level: Double(value))
-    }
-
     func step(up: Bool, fine: Bool) -> HUDState? {
         var current: Float = 0
         let getStatus = getBrightness(display, &current)

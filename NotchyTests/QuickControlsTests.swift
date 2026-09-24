@@ -5,7 +5,6 @@ import XCTest
 private final class FakeVolume: VolumeStepping {
     var canSetVolume = true
     var current = HUDState(kind: .volume, level: 0.5)
-    var onChange: ((HUDState) -> Void)?
     private(set) var started = false
     private(set) var steps: [Bool] = []
     func start() { started = true }
@@ -15,13 +14,10 @@ private final class FakeVolume: VolumeStepping {
 @MainActor
 private final class FakeBrightness: BrightnessStepping {
     var isUsable = true
-    var level = 0.3
     private(set) var steps: [Bool] = []
-    var current: HUDState? { HUDState(kind: .brightness, level: level) }
     func step(up: Bool, fine: Bool) -> HUDState? {
         steps.append(up)
-        level = up ? 0.6 : 0.4
-        return HUDState(kind: .brightness, level: level)
+        return HUDState(kind: .brightness, level: up ? 0.6 : 0.4)
     }
 }
 
@@ -104,39 +100,5 @@ final class QuickControlsTests: XCTestCase {
         scheduler.advance(by: vm.configuration.hoverDelay)
         XCTAssertEqual(vm.state, .expanded)
         XCTAssertEqual(vm.availableControls, [.volumeDown, .volumeUp, .lockScreen])
-    }
-
-    func testStartShowsTheCurrentLevels() {
-        startControls(brightness: brightness, locker: locker)
-        XCTAssertEqual(vm.controlLevels, ControlLevels(brightness: 0.3, volume: 0.5))
-    }
-
-    func testVolumeChangesFromAnywhereUpdateTheLevel() {
-        startControls(brightness: brightness, locker: locker)
-        volume.onChange?(HUDState(kind: .volume, level: 0.7))
-        XCTAssertEqual(vm.controlLevels.volume, 0.7)
-        volume.onChange?(HUDState(kind: .volume, level: 0.7, isMuted: true))
-        XCTAssertEqual(vm.controlLevels.volume, 0, "muted shows as zero")
-    }
-
-    func testBrightnessButtonUpdatesTheLevel() {
-        startControls(brightness: brightness, locker: locker)
-        vm.perform(.brightnessUp)
-        XCTAssertEqual(vm.controlLevels.brightness, 0.6)
-    }
-
-    func testBrightnessKeysWhileExpandedUpdateTheLevel() {
-        startControls(brightness: brightness, locker: locker)
-        vm.hoverChanged(true)
-        scheduler.advance(by: vm.configuration.hoverDelay)
-        vm.present(.hud(HUDState(kind: .brightness, level: 0.9)))
-        XCTAssertEqual(vm.controlLevels.brightness, 0.9)
-    }
-
-    func testUnavailableControlsShowNoLevel() {
-        volume.canSetVolume = false
-        brightness.isUsable = false
-        startControls(brightness: brightness, locker: nil)
-        XCTAssertEqual(vm.controlLevels, ControlLevels())
     }
 }
