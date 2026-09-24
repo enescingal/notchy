@@ -102,7 +102,7 @@ final class CountdownTests: XCTestCase {
 
     func testIslandContentReportsTheCountdown() {
         vm.toggleCountdownEntry()
-        XCTAssertEqual(vm.islandContent, IslandContent(isEditingCountdown: true))
+        XCTAssertEqual(vm.islandContent, IslandContent(), "the minutes field sits in the control row")
         vm.startCountdown(minutes: 5)
         XCTAssertEqual(vm.islandContent, IslandContent(hasCountdown: true))
     }

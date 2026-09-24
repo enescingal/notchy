@@ -5,8 +5,11 @@ import SwiftUI
 struct QuickControlsView: View {
     let available: Set<QuickControl>
     let isTimerActive: Bool
+    let isEditingCountdown: Bool
     let onControl: (QuickControl) -> Void
     let onTimer: () -> Void
+    let onStartCountdown: (Int) -> Void
+    let onCancelCountdownEntry: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
@@ -23,6 +26,9 @@ struct QuickControlsView: View {
             Spacer(minLength: 16)
             HStack(spacing: 2) {
                 timerButton
+                if isEditingCountdown {
+                    CountdownField(onSubmit: onStartCountdown, onCancel: onCancelCountdownEntry)
+                }
                 button("lock.fill", .lockScreen)
             }
         }

@@ -5,11 +5,11 @@ struct IslandContent: Equatable {
     var isMediaPlaying = false
     var hasMedia = false
     var hasCountdown = false
-    var isEditingCountdown = false
 
-    /// Rows under the notch while expanded: controls, then countdown, then media.
+    /// Rows under the notch while expanded: controls, then countdown, then media. The minutes
+    /// field opens inside the control row, so it adds none.
     var expandedRows: Int {
-        1 + (hasCountdown || isEditingCountdown ? 1 : 0) + (hasMedia ? 1 : 0)
+        1 + (hasCountdown ? 1 : 0) + (hasMedia ? 1 : 0)
     }
 }
 
@@ -23,7 +23,7 @@ enum NotchLayout {
     static let expandedExtraHeight: CGFloat = 48
     /// Extra height for each row under the control row (countdown, media).
     static let expandedRowHeight: CGFloat = 36
-    static let countdownSideWidth: CGFloat = 76
+    static let countdownSideWidth: CGFloat = 60
     static let panelMargin: CGFloat = 24
 
     static func islandSize(for state: NotchState, content: IslandContent, notch: CGSize) -> CGSize {

@@ -50,19 +50,22 @@ struct ClosedContentView: View {
     var body: some View {
         HStack {
             if let countdown {
-                HStack(spacing: 4) {
-                    Image(systemName: "timer")
-                    CountdownText(countdown: countdown)
+                // Like the iPhone timer: the icon left of the notch, the time right of it. The
+                // countdown takes the right side, so the equalizer waits until it ends.
+                Image(systemName: "timer")
+                    .padding(.leading, NotchLayout.earRadius + 6)
+                Spacer()
+                CountdownText(countdown: countdown)
+                    .padding(.trailing, NotchLayout.earRadius + 6)
+            } else {
+                Spacer()
+                if isMediaPlaying {
+                    EqualizerView().padding(.trailing, NotchLayout.earRadius + 10)
                 }
-                .font(.system(size: 12, weight: .semibold).monospacedDigit())
-                .foregroundStyle(.orange)
-                .padding(.leading, NotchLayout.earRadius + 6)
-            }
-            Spacer()
-            if isMediaPlaying {
-                EqualizerView().padding(.trailing, NotchLayout.earRadius + 10)
             }
         }
+        .font(.system(size: 12, weight: .semibold).monospacedDigit())
+        .foregroundStyle(.orange)
         .frame(maxHeight: .infinity)
     }
 }
@@ -100,9 +103,12 @@ struct ExpandedContentView: View {
             VStack(spacing: 8) {
                 QuickControlsView(available: viewModel.availableControls,
                                   isTimerActive: viewModel.countdown != nil,
+                                  isEditingCountdown: viewModel.isEditingCountdown,
                                   onControl: { viewModel.perform($0) },
-                                  onTimer: { viewModel.toggleCountdownEntry() })
-                if viewModel.countdown != nil || viewModel.isEditingCountdown {
+                                  onTimer: { viewModel.toggleCountdownEntry() },
+                                  onStartCountdown: { viewModel.startCountdown(minutes: $0) },
+                                  onCancelCountdownEntry: { viewModel.cancelCountdownEntry() })
+                if viewModel.countdown != nil {
                     CountdownRowView(viewModel: viewModel)
                 }
                 if let media = viewModel.media {

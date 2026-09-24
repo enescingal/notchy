@@ -56,7 +56,7 @@ final class NotchViewModel: ObservableObject {
     /// What the island shows besides its state; drives its size.
     var islandContent: IslandContent {
         IslandContent(isMediaPlaying: media?.isPlaying == true, hasMedia: media != nil,
-                      hasCountdown: countdown != nil, isEditingCountdown: isEditingCountdown)
+                      hasCountdown: countdown != nil)
     }
 
     func present(_ content: PeekContent) {

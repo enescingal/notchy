@@ -12,15 +12,38 @@ struct CountdownText: View {
     }
 }
 
-/// The timer row under the controls: the minutes field, or the running countdown.
-struct CountdownRowView: View {
-    @ObservedObject var viewModel: NotchViewModel
+/// The minutes field that opens right beside the timer button; Enter starts, Esc closes.
+struct CountdownField: View {
+    let onSubmit: (Int) -> Void
+    let onCancel: () -> Void
     @State private var minutes = ""
-    @FocusState private var isFieldFocused: Bool
+    @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack(spacing: 8) {
-            if let countdown = viewModel.countdown {
+        TextField("dk", text: $minutes)
+            .textFieldStyle(.plain)
+            .font(.system(size: 13, weight: .semibold).monospacedDigit())
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.center)
+            .frame(width: 56, height: 22)
+            .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
+            .focused($isFocused)
+            .onSubmit { onSubmit(Int(minutes) ?? 0) }
+            .onExitCommand(perform: onCancel)
+            .onAppear {
+                // The panel becomes key in the same update; focus once it is.
+                DispatchQueue.main.async { isFocused = true }
+            }
+    }
+}
+
+/// The running or paused countdown, in its own row under the controls.
+struct CountdownRowView: View {
+    @ObservedObject var viewModel: NotchViewModel
+
+    var body: some View {
+        if let countdown = viewModel.countdown {
+            HStack(spacing: 8) {
                 CountdownText(countdown: countdown)
                     .font(.system(size: 13, weight: .semibold).monospacedDigit())
                     .foregroundStyle(.white)
@@ -28,25 +51,9 @@ struct CountdownRowView: View {
                     countdown.isPaused ? viewModel.resumeCountdown() : viewModel.pauseCountdown()
                 }
                 button("xmark") { viewModel.cancelCountdown() }
-            } else {
-                TextField("dk", text: $minutes)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 13, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .frame(width: 56, height: 22)
-                    .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
-                    .focused($isFieldFocused)
-                    .onSubmit { viewModel.startCountdown(minutes: Int(minutes) ?? 0) }
-                    .onExitCommand { viewModel.cancelCountdownEntry() }
-                    .onAppear {
-                        minutes = ""
-                        // The panel becomes key in the same update; focus once it is.
-                        DispatchQueue.main.async { isFieldFocused = true }
-                    }
             }
+            .frame(height: 28)
         }
-        .frame(height: 28)
     }
 
     private func button(_ symbol: String, action: @escaping () -> Void) -> some View {

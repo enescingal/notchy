@@ -4,6 +4,8 @@ Tarih: 23.09.2026 · Dal: `feature/notchy-v1` · İlgili: [2026-09-23-quick-cont
 
 > **Revizyon (23.09.2026):** Zamanlayıcı düğmesi kontrol satırının sağ grubunda, kilidin solunda duruyor.
 
+> **Revizyon 2 (24.09.2026):** Dakika alanı ayrı bir satırda değil, zamanlayıcı düğmesinin hemen sağında, kontrol satırının içinde açılır; ada büyümez. Kapalı adada simge çentiğin solunda, kalan süre sağında durur (`countdownSideWidth` 60 pt). Geri sayım varken ekolayzır gizlenir.
+
 ## 1. Amaç
 
 Açık adadan dakika girilerek bir geri sayım başlatılır. Kalan süre adada küçük olarak görünür. Süre dolunca ses çalar ve bildirim çıkar.
