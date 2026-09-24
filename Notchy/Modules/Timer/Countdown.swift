@@ -12,9 +12,10 @@ enum CountdownState: Equatable {
 }
 
 enum CountdownFormat {
-    /// `m:ss`, or `h:mm:ss` from one hour up. Partial seconds round up, so 0.4 s shows 0:01.
-    static func string(from seconds: TimeInterval) -> String {
-        let total = max(0, Int(seconds.rounded(.up)))
+    /// `m:ss`, or `h:mm:ss` from one hour up. Partial seconds round up by default, so a
+    /// countdown's 0.4 s shows 0:01; a stopwatch rounds down instead.
+    static func string(from seconds: TimeInterval, rounding: FloatingPointRoundingRule = .up) -> String {
+        let total = max(0, Int(seconds.rounded(rounding)))
         let hours = total / 3600, minutes = (total % 3600) / 60, secs = total % 60
         return hours > 0
             ? String(format: "%d:%02d:%02d", hours, minutes, secs)

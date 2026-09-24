@@ -47,24 +47,13 @@ struct CountdownRowView: View {
                 CountdownText(countdown: countdown)
                     .font(.system(size: 13, weight: .semibold).monospacedDigit())
                     .foregroundStyle(.white)
-                button(countdown.isPaused ? "play.fill" : "pause.fill") {
+                TimerRowButton(symbol: countdown.isPaused ? "play.fill" : "pause.fill") {
                     countdown.isPaused ? viewModel.resumeCountdown() : viewModel.pauseCountdown()
                 }
-                button("xmark") { viewModel.cancelCountdown() }
+                TimerRowButton(symbol: "xmark") { viewModel.cancelCountdown() }
             }
             .frame(height: 28)
         }
-    }
-
-    private func button(_ symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 28, height: 28)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
     }
 }
 
@@ -82,5 +71,54 @@ struct TimerDonePeekView: View {
                 .font(.system(size: 14))
                 .foregroundStyle(.orange)
         }
+    }
+}
+
+/// Elapsed time: live while running, frozen while paused.
+struct StopwatchText: View {
+    let stopwatch: StopwatchState
+
+    var body: some View {
+        switch stopwatch {
+        // A past date makes the timer style count up.
+        case .running(let startDate): Text(startDate, style: .timer)
+        case .paused(let elapsed): Text(CountdownFormat.string(from: elapsed, rounding: .down))
+        }
+    }
+}
+
+/// The running or paused stopwatch, in its own row under the countdown.
+struct StopwatchRowView: View {
+    @ObservedObject var viewModel: NotchViewModel
+
+    var body: some View {
+        if let stopwatch = viewModel.stopwatch {
+            HStack(spacing: 8) {
+                StopwatchText(stopwatch: stopwatch)
+                    .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(.white)
+                TimerRowButton(symbol: stopwatch.isPaused ? "play.fill" : "pause.fill") {
+                    stopwatch.isPaused ? viewModel.resumeStopwatch() : viewModel.pauseStopwatch()
+                }
+                TimerRowButton(symbol: "xmark") { viewModel.resetStopwatch() }
+            }
+            .frame(height: 28)
+        }
+    }
+}
+
+struct TimerRowButton: View {
+    let symbol: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

@@ -1,15 +1,17 @@
 import SwiftUI
 
 /// The control row that is always at the top of the expanded island: brightness and volume
-/// on the left, timer and lock on the right.
+/// on the left, timer, stopwatch and lock on the right.
 struct QuickControlsView: View {
     let available: Set<QuickControl>
     let isTimerActive: Bool
     let isEditingCountdown: Bool
+    let isStopwatchActive: Bool
     let onControl: (QuickControl) -> Void
     let onTimer: () -> Void
     let onStartCountdown: (Int) -> Void
     let onCancelCountdownEntry: () -> Void
+    let onStopwatch: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
@@ -25,20 +27,22 @@ struct QuickControlsView: View {
             }
             Spacer(minLength: 16)
             HStack(spacing: 2) {
-                timerButton
+                toggleButton("timer", isActive: isTimerActive, action: onTimer)
                 if isEditingCountdown {
                     CountdownField(onSubmit: onStartCountdown, onCancel: onCancelCountdownEntry)
                 }
+                toggleButton("stopwatch", isActive: isStopwatchActive, action: onStopwatch)
                 button("lock.fill", .lockScreen)
             }
         }
     }
 
-    private var timerButton: some View {
-        Button(action: onTimer) {
-            Image(systemName: "timer")
+    /// Orange while its timer exists.
+    private func toggleButton(_ symbol: String, isActive: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(isTimerActive ? Color.orange : Color.white)
+                .foregroundStyle(isActive ? Color.orange : Color.white)
                 .frame(width: 28, height: 28)
                 .contentShape(Rectangle())
         }

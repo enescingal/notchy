@@ -5,17 +5,23 @@ struct IslandContent: Equatable {
     var isMediaPlaying = false
     var hasMedia = false
     var hasCountdown = false
+    var hasStopwatch = false
 
-    /// Rows under the notch while expanded: controls, then countdown, then media. The minutes
-    /// field opens inside the control row, so it adds none.
+    /// Rows under the notch while expanded: controls, then countdown, stopwatch and media. The
+    /// minutes field opens inside the control row, so it adds none.
     var expandedRows: Int {
-        1 + (hasCountdown ? 1 : 0) + (hasMedia ? 1 : 0)
+        1 + (hasCountdown ? 1 : 0) + (hasStopwatch ? 1 : 0) + (hasMedia ? 1 : 0)
     }
+
+    /// The closed island shows a timer beside the notch: the countdown, else the stopwatch.
+    var hasTimer: Bool { hasCountdown || hasStopwatch }
 }
 
 enum NotchLayout {
     /// Inward-curved top corners drawn outside the physical notch on both sides.
     static let earRadius: CGFloat = 6
+    /// Gap between the island's side edge and its content, beside the notch and below it alike.
+    static let contentInset: CGFloat = earRadius + 12
     static let peekSideWidth: CGFloat = 110
     static let mediaIndicatorWidth: CGFloat = 32
     static let expandedSideWidth: CGFloat = 90
@@ -30,7 +36,7 @@ enum NotchLayout {
         let body: CGSize
         switch state {
         case .closed:
-            let side = content.hasCountdown ? countdownSideWidth
+            let side = content.hasTimer ? countdownSideWidth
                 : content.isMediaPlaying ? mediaIndicatorWidth : 0
             body = CGSize(width: notch.width + 2 * side, height: notch.height)
         case .peek:
@@ -49,7 +55,7 @@ enum NotchLayout {
     }
 
     static func panelSize(notch: CGSize) -> CGSize {
-        let tallest = IslandContent(isMediaPlaying: true, hasMedia: true, hasCountdown: true)
+        let tallest = IslandContent(isMediaPlaying: true, hasMedia: true, hasCountdown: true, hasStopwatch: true)
         let expanded = islandSize(for: .expanded, content: tallest, notch: notch)
         return CGSize(width: expanded.width + 2 * panelMargin, height: expanded.height + panelMargin)
     }
@@ -64,6 +70,6 @@ enum NotchLayout {
 
     /// On a screen without a physical notch the idle island is not drawn; its area still detects hover.
     static func isHidden(state: NotchState, content: IslandContent, isVirtualNotch: Bool) -> Bool {
-        isVirtualNotch && state == .closed && !content.isMediaPlaying && !content.hasCountdown
+        isVirtualNotch && state == .closed && !content.isMediaPlaying && !content.hasTimer
     }
 }

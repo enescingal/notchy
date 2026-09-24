@@ -34,7 +34,8 @@ struct NotchView: View {
     private var content: some View {
         switch viewModel.state {
         case .closed:
-            ClosedContentView(isMediaPlaying: islandContent.isMediaPlaying, countdown: viewModel.countdown)
+            ClosedContentView(isMediaPlaying: islandContent.isMediaPlaying, countdown: viewModel.countdown,
+                              stopwatch: viewModel.stopwatch)
         case .peek(let peek):
             PeekContentView(content: peek, notchWidth: notchSize.width)
         case .expanded:
@@ -46,16 +47,24 @@ struct NotchView: View {
 struct ClosedContentView: View {
     let isMediaPlaying: Bool
     let countdown: CountdownState?
+    let stopwatch: StopwatchState?
 
     var body: some View {
         HStack {
+            // Like the iPhone timer: the icon left of the notch, the time right of it. A timer
+            // takes the right side, so the equalizer waits until it ends; with both running the
+            // countdown wins, since it has a deadline.
             if let countdown {
-                // Like the iPhone timer: the icon left of the notch, the time right of it. The
-                // countdown takes the right side, so the equalizer waits until it ends.
                 Image(systemName: "timer")
                     .padding(.leading, NotchLayout.earRadius + 6)
                 Spacer()
                 CountdownText(countdown: countdown)
+                    .padding(.trailing, NotchLayout.earRadius + 6)
+            } else if let stopwatch {
+                Image(systemName: "stopwatch")
+                    .padding(.leading, NotchLayout.earRadius + 6)
+                Spacer()
+                StopwatchText(stopwatch: stopwatch)
                     .padding(.trailing, NotchLayout.earRadius + 6)
             } else {
                 Spacer()
@@ -90,13 +99,15 @@ struct ExpandedContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // The strip beside the notch shows the same HUD as a closed-state peek.
+            // The strip beside the notch shows the date and time, or the same HUD as a
+            // closed-state peek while one is up.
             Group {
                 if let hud = viewModel.expandedHUD {
                     HUDPeekView(hud: hud, notchWidth: notchSize.width,
                                 sideWidth: NotchLayout.expandedSideSpace(notch: notchSize))
                 } else {
-                    Color.clear
+                    DateTimeStripView(notchWidth: notchSize.width,
+                                      sideWidth: NotchLayout.expandedSideSpace(notch: notchSize))
                 }
             }
             .frame(height: notchSize.height)
@@ -104,18 +115,23 @@ struct ExpandedContentView: View {
                 QuickControlsView(available: viewModel.availableControls,
                                   isTimerActive: viewModel.countdown != nil,
                                   isEditingCountdown: viewModel.isEditingCountdown,
+                                  isStopwatchActive: viewModel.stopwatch != nil,
                                   onControl: { viewModel.perform($0) },
                                   onTimer: { viewModel.toggleCountdownEntry() },
                                   onStartCountdown: { viewModel.startCountdown(minutes: $0) },
-                                  onCancelCountdownEntry: { viewModel.cancelCountdownEntry() })
+                                  onCancelCountdownEntry: { viewModel.cancelCountdownEntry() },
+                                  onStopwatch: { viewModel.startStopwatch() })
                 if viewModel.countdown != nil {
                     CountdownRowView(viewModel: viewModel)
+                }
+                if viewModel.stopwatch != nil {
+                    StopwatchRowView(viewModel: viewModel)
                 }
                 if let media = viewModel.media {
                     MediaExpandedView(media: media) { viewModel.send($0) }
                 }
             }
-            .padding(.horizontal, NotchLayout.earRadius + 20)
+            .padding(.horizontal, NotchLayout.contentInset)
             .frame(maxHeight: .infinity)
         }
     }

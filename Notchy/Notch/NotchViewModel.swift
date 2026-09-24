@@ -32,6 +32,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var countdown: CountdownState?
     /// True while the minutes field is open; keeps the island expanded and takes the keyboard.
     @Published private(set) var isEditingCountdown = false
+    /// The running or paused stopwatch, if any.
+    @Published private(set) var stopwatch: StopwatchState?
 
     var configuration = NotchConfiguration()
     var mediaCommandHandler: ((MediaCommand) -> Void)?
@@ -56,7 +58,7 @@ final class NotchViewModel: ObservableObject {
     /// What the island shows besides its state; drives its size.
     var islandContent: IslandContent {
         IslandContent(isMediaPlaying: media?.isPlaying == true, hasMedia: media != nil,
-                      hasCountdown: countdown != nil)
+                      hasCountdown: countdown != nil, hasStopwatch: stopwatch != nil)
     }
 
     func present(_ content: PeekContent) {
@@ -206,6 +208,28 @@ final class NotchViewModel: ObservableObject {
         countdown = nil
         present(.timerDone)
         onCountdownFinished?()
+    }
+
+    // MARK: - Stopwatch
+
+    /// The stopwatch button: starts one from zero; does nothing while one exists.
+    func startStopwatch() {
+        guard stopwatch == nil else { return }
+        stopwatch = .running(startDate: now())
+    }
+
+    func pauseStopwatch() {
+        guard case .running(let startDate) = stopwatch else { return }
+        stopwatch = .paused(elapsed: now().timeIntervalSince(startDate))
+    }
+
+    func resumeStopwatch() {
+        guard case .paused(let elapsed) = stopwatch else { return }
+        stopwatch = .running(startDate: now().addingTimeInterval(-elapsed))
+    }
+
+    func resetStopwatch() {
+        stopwatch = nil
     }
 
     /// Editing kept the island open after the mouse left; close it the normal way now.

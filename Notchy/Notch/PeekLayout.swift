@@ -11,11 +11,11 @@ struct PeekLayout<Left: View, Right: View>: View {
     var body: some View {
         HStack(spacing: 0) {
             left
-                .padding(.leading, NotchLayout.earRadius + 12)
+                .padding(.leading, NotchLayout.contentInset)
                 .frame(width: sideWidth + NotchLayout.earRadius, alignment: .leading)
             Color.clear.frame(width: notchWidth)
             right
-                .padding(.trailing, NotchLayout.earRadius + 12)
+                .padding(.trailing, NotchLayout.contentInset)
                 .frame(width: sideWidth + NotchLayout.earRadius, alignment: .trailing)
         }
         .frame(maxHeight: .infinity)
