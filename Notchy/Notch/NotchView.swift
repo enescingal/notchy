@@ -35,7 +35,8 @@ struct NotchView: View {
         switch viewModel.state {
         case .closed:
             ClosedContentView(isMediaPlaying: islandContent.isMediaPlaying, countdown: viewModel.countdown,
-                              stopwatch: viewModel.stopwatch)
+                              stopwatch: viewModel.stopwatch,
+                              trackTitle: islandContent.showsTrackTitle ? viewModel.trackTitle : nil)
         case .peek(let peek):
             PeekContentView(content: peek, notchWidth: notchSize.width)
         case .expanded:
@@ -48,6 +49,11 @@ struct ClosedContentView: View {
     let isMediaPlaying: Bool
     let countdown: CountdownState?
     let stopwatch: StopwatchState?
+    let trackTitle: String?
+
+    private static let trackTitleWidth = NotchLayout.trackTitleSideWidth - 16
+    /// About two letters wide.
+    private static let trackTitleFade: CGFloat = 16
 
     var body: some View {
         HStack {
@@ -67,6 +73,23 @@ struct ClosedContentView: View {
                 StopwatchText(stopwatch: stopwatch)
                     .padding(.trailing, NotchLayout.earRadius + 6)
             } else {
+                // The title sits in the same branch as the equalizer, so the equalizer keeps
+                // animating while the title comes and goes.
+                if let trackTitle {
+                    // Cut off at the edge with no ellipsis: only the start of the title shows, and
+                    // its last letter fades out. A title that fits never reaches the fade.
+                    Text(trackTitle)
+                        .foregroundStyle(.white)
+                        .fixedSize()
+                        .frame(width: Self.trackTitleWidth, alignment: .leading)
+                        .clipped()
+                        .mask(LinearGradient(stops: [.init(color: .black, location: 1 - Self.trackTitleFade / Self.trackTitleWidth),
+                                                     .init(color: .clear, location: 1)],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .padding(.leading, NotchLayout.earRadius + 10)
+                        .frame(width: NotchLayout.trackTitleSideWidth + NotchLayout.earRadius, alignment: .leading)
+                        .transition(.opacity)
+                }
                 Spacer()
                 if isMediaPlaying {
                     EqualizerView().padding(.trailing, NotchLayout.earRadius + 10)

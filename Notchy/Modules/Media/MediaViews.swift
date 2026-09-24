@@ -20,16 +20,14 @@ struct EqualizerView: View {
     }
 }
 
-/// One row under the controls: the title on the left, playback controls on the right.
+/// One row under the controls: the title (and artist) on the left, playback controls on the right.
 struct MediaExpandedView: View {
     let media: MediaState
     let onCommand: (MediaCommand) -> Void
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(media.title)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
+            title
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: 2) {
@@ -38,6 +36,22 @@ struct MediaExpandedView: View {
                 button("forward.fill", .next)
             }
         }
+    }
+
+    /// The artist trails the title in smaller, dimmer type; a long title truncates it away.
+    private var title: Text {
+        let title = Text(media.title)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(.white)
+        guard let suffix = Self.artistSuffix(media.artist) else { return title }
+        return title + Text(suffix)
+            .font(.system(size: 10, weight: .medium))
+            .foregroundColor(.white.opacity(0.6))
+    }
+
+    static func artistSuffix(_ artist: String?) -> String? {
+        guard let artist = artist?.trimmingCharacters(in: .whitespaces), !artist.isEmpty else { return nil }
+        return " (\(artist))"
     }
 
     private func button(_ symbol: String, _ command: MediaCommand, size: CGFloat = 12) -> some View {

@@ -18,6 +18,7 @@ struct NotchConfiguration: Equatable {
     var hudDuration: TimeInterval = 1.5
     var collapseDelay: TimeInterval = 0.3
     var timerDoneDuration: TimeInterval = 5.0
+    var trackTitleDuration: TimeInterval = 2.0
 }
 
 @MainActor
@@ -34,6 +35,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isEditingCountdown = false
     /// The running or paused stopwatch, if any.
     @Published private(set) var stopwatch: StopwatchState?
+    /// A new track's title, shown briefly beside the notch after the track changes.
+    @Published private(set) var trackTitle: String?
 
     var configuration = NotchConfiguration()
     var mediaCommandHandler: ((MediaCommand) -> Void)?
@@ -49,6 +52,7 @@ final class NotchViewModel: ObservableObject {
     private var isHovering = false
     private let now: () -> Date
     private var countdownToken: SchedulerToken?
+    private var trackTitleToken: SchedulerToken?
 
     init(scheduler: Scheduler, now: @escaping () -> Date = Date.init) {
         self.scheduler = scheduler
@@ -58,7 +62,8 @@ final class NotchViewModel: ObservableObject {
     /// What the island shows besides its state; drives its size.
     var islandContent: IslandContent {
         IslandContent(isMediaPlaying: media?.isPlaying == true, hasMedia: media != nil,
-                      hasCountdown: countdown != nil, hasStopwatch: stopwatch != nil)
+                      hasCountdown: countdown != nil, hasStopwatch: stopwatch != nil,
+                      hasTrackTitle: trackTitle != nil)
     }
 
     func present(_ content: PeekContent) {
@@ -90,7 +95,17 @@ final class NotchViewModel: ObservableObject {
     }
 
     func updateMedia(_ media: MediaState?) {
+        let previous = self.media
         self.media = media
+        // Only a playing track that replaces another counts: not the first one after launch,
+        // and not a pause or resume.
+        guard let previous, let media, media.isPlaying,
+              media.title != previous.title || media.artist != previous.artist else { return }
+        trackTitle = media.title
+        trackTitleToken?.cancel()
+        trackTitleToken = scheduler.schedule(after: configuration.trackTitleDuration) { [weak self] in
+            self?.trackTitle = nil
+        }
     }
 
     func handleSwipe(_ direction: SwipeDirection) {

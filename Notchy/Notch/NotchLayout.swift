@@ -6,6 +6,8 @@ struct IslandContent: Equatable {
     var hasMedia = false
     var hasCountdown = false
     var hasStopwatch = false
+    /// A new track's title is up; shown only while it plays and no timer holds the closed island.
+    var hasTrackTitle = false
 
     /// Rows under the notch while expanded: controls, then countdown, stopwatch and media. The
     /// minutes field opens inside the control row, so it adds none.
@@ -15,6 +17,8 @@ struct IslandContent: Equatable {
 
     /// The closed island shows a timer beside the notch: the countdown, else the stopwatch.
     var hasTimer: Bool { hasCountdown || hasStopwatch }
+
+    var showsTrackTitle: Bool { hasTrackTitle && isMediaPlaying && !hasTimer }
 }
 
 enum NotchLayout {
@@ -24,6 +28,8 @@ enum NotchLayout {
     static let contentInset: CGFloat = earRadius + 12
     static let peekSideWidth: CGFloat = 110
     static let mediaIndicatorWidth: CGFloat = 32
+    /// Room for the start of a new track's title left of the notch.
+    static let trackTitleSideWidth: CGFloat = 100
     static let expandedSideWidth: CGFloat = 90
     static let expandedMinWidth: CGFloat = 380
     static let expandedExtraHeight: CGFloat = 48
@@ -37,6 +43,7 @@ enum NotchLayout {
         switch state {
         case .closed:
             let side = content.hasTimer ? countdownSideWidth
+                : content.showsTrackTitle ? trackTitleSideWidth
                 : content.isMediaPlaying ? mediaIndicatorWidth : 0
             body = CGSize(width: notch.width + 2 * side, height: notch.height)
         case .peek:
